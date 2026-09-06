@@ -70,6 +70,23 @@ sudo bash uninstall_offline.sh
 > 2. 本仓库 [`uos20-build/install_offline.sh`](uos20-build/install_offline.sh) / [`uos20-build/uninstall_offline.sh`](uos20-build/uninstall_offline.sh)
 > 3. 便携包 `fsearch-0.3.1.1-uos20-portable.tar.gz` 内部已自带这两个脚本
 
+### 只下载了安装包？
+
+脚本就在包里，解压即得，无需另外下载：
+
+```bash
+# 1. 解压安装包（解压出 opt/ 目录，两个脚本在 opt/fsearch/ 下，README.txt 里有同样说明）
+tar xzf fsearch-0.3.1.1-uos20-portable.tar.gz
+
+# 2. 用解压出的脚本安装（把下载的 tar.gz 原地装进 /opt/fsearch）
+sudo bash opt/fsearch/install_offline.sh fsearch-0.3.1.1-uos20-portable.tar.gz
+
+# 3. 运行
+fsearch
+
+# 4. 安装完成后，解压出来的 opt/ 目录可删除
+```
+
 ## 从源码构建
 
 详见 [`uos20-build/README.md`](uos20-build/README.md)（含完整流程、GLib 2.58 兼容说明、

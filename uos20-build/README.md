@@ -234,19 +234,7 @@
 - **相关文件**：`src/fsearch_global_hotkey.c`（模块实现）、`fsearch_config.h/.c`（配置字段）、
   `fsearch_preferences_dialog.c/.ui`（设置入口）、`fsearch.c`（startup/shutdown/apply 接线）。
 
-## 新增功能四：修复任务栏窗口图标（不再是齿轮）
-
-- **现象**：FSearch 窗口打开时，任务栏（dock）上的图标显示为系统默认的「齿轮」，而不是 FSearch 自己的图标。
-- **根因**：窗口创建时从未设置窗口图标（没有任何 `gtk_window_set_icon*` 调用），GTK 只能回退到主题默认图标。
-  此前只有托盘图标（右下角）显式设置了图标名，所以托盘正常、任务栏却显示齿轮。
-- **修复**：
-  - `fsearch_application_startup`（`src/fsearch.c`）：把便携包自带的图标目录 `<prefix>/share/icons`
-    提前加入 GTK 图标主题搜索路径，并调用 `gtk_window_set_default_icon_name()` 设置全局默认窗口图标；
-  - `fsearch_application_window_init`（`src/fsearch_window.c`）：窗口初始化时再显式
-    `gtk_window_set_icon_name("io.github.cboxdoerfer.FSearch")` 双保险。
-- **生效**：重新编译安装后，任务栏即显示 FSearch 自己的图标（与托盘/桌面图标一致）。
-
-## 新增功能五：搜索结果批量重命名
+## 新增功能四：搜索结果批量重命名
 
 - **入口**：在搜索结果列表**选中一个或多个文件**后，右键菜单新增「**批量重命名…**」。
 - **规则**（可多选叠加，任一控件改动即时刷新预览）：
