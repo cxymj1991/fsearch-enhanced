@@ -41,9 +41,7 @@
    - 实时预览「原名 → 新名 → 状态」，冲突（已存在/非法/重名）红色标记并跳过；
    - 执行后支持**一键撤销**全部改名，数据库同步更新。
 
-6. **修复任务栏窗口图标**：窗口/任务栏正确显示 FSearch 图标（不再是齿轮）。
-
-7. **UOS 20（Debian 10 / GLib 2.58）兼容**
+6. **UOS 20（Debian 10 / GLib 2.58）兼容**
    - 构建脚本自动打 GLib 2.58 兼容补丁（`g_ptr_array_copy` 等价替换）；
    - 离线便携包自带运行依赖（除 glibc 核心库外），不联网、不动系统包管理器即可安装。
 
@@ -67,7 +65,10 @@ ldd /opt/fsearch/bin/fsearch | grep -i 'not found' || echo '依赖齐全，OK'
 sudo bash uninstall_offline.sh
 ```
 
-> 安装包内已包含 `install_offline.sh` / `uninstall_offline.sh`，与本仓库 `uos20-build/` 目录一致。
+> 安装/卸载脚本有三个获取途径（内容完全一致）：
+> 1. **Release 附件直接下载**：[`install_offline.sh`](https://github.com/cxymj1991/fsearch-enhanced/releases/download/v0.3.1.1/install_offline.sh) / [`uninstall_offline.sh`](https://github.com/cxymj1991/fsearch-enhanced/releases/download/v0.3.1.1/uninstall_offline.sh)
+> 2. 本仓库 [`uos20-build/install_offline.sh`](uos20-build/install_offline.sh) / [`uos20-build/uninstall_offline.sh`](uos20-build/uninstall_offline.sh)
+> 3. 便携包 `fsearch-0.3.1.1-uos20-portable.tar.gz` 内部已自带这两个脚本
 
 ## 从源码构建
 
