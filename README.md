@@ -49,11 +49,17 @@
 
 ## 快速开始（离线安装）
 
-在 UOS 20（或 Debian 10）目标机器上：
+1. 到 Releases 页面，把下面**三个文件下载到同一个目录**：
+
+   - `fsearch-0.3.1.1-uos20-portable.tar.gz`（程序本体）
+   - `install_offline.sh`（安装脚本）
+   - `uninstall_offline.sh`（卸载脚本）
+
+2. 在该目录执行（需要 root）：
 
 ```bash
-# 解压 Releases 下载的便携包并安装（需要 root）
-sudo bash install_offline.sh ~/桌面/fsearch-0.3.1.1-uos20-portable.tar.gz
+# 安装
+sudo bash install_offline.sh fsearch-0.3.1.1-uos20-portable.tar.gz
 
 # 运行
 fsearch
@@ -61,30 +67,8 @@ fsearch
 # 验证依赖齐全（应无 not found）
 ldd /opt/fsearch/bin/fsearch | grep -i 'not found' || echo '依赖齐全，OK'
 
-# 卸载（交互式；--purge 一并删除配置与索引数据库）
+# 卸载（交互式；加 --purge 一并删除配置与索引数据库）
 sudo bash uninstall_offline.sh
-```
-
-> 安装/卸载脚本有三个获取途径（内容完全一致）：
-> 1. **Release 附件直接下载**：[`install_offline.sh`](https://github.com/cxymj1991/fsearch-enhanced/releases/download/v0.3.1.1/install_offline.sh) / [`uninstall_offline.sh`](https://github.com/cxymj1991/fsearch-enhanced/releases/download/v0.3.1.1/uninstall_offline.sh)
-> 2. 本仓库 [`uos20-build/install_offline.sh`](uos20-build/install_offline.sh) / [`uos20-build/uninstall_offline.sh`](uos20-build/uninstall_offline.sh)
-> 3. 便携包 `fsearch-0.3.1.1-uos20-portable.tar.gz` 内部已自带这两个脚本
-
-### 只下载了安装包？
-
-脚本就在包里，解压即得，无需另外下载：
-
-```bash
-# 1. 解压安装包（解压出 opt/ 目录，两个脚本在 opt/fsearch/ 下，README.txt 里有同样说明）
-tar xzf fsearch-0.3.1.1-uos20-portable.tar.gz
-
-# 2. 用解压出的脚本安装（把下载的 tar.gz 原地装进 /opt/fsearch）
-sudo bash opt/fsearch/install_offline.sh fsearch-0.3.1.1-uos20-portable.tar.gz
-
-# 3. 运行
-fsearch
-
-# 4. 安装完成后，解压出来的 opt/ 目录可删除
 ```
 
 ## 从源码构建
