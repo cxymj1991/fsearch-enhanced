@@ -39,7 +39,7 @@
 
 ## 二、安装
 
-到 **[Releases](../../releases)** 页面下载最新版本，**目标机无需联网**。
+到 **[Releases](https://github.com/cxymj1991/fsearch-enhanced/releases)** 页面下载最新版本，**目标机无需联网**。
 
 ### 方式 A：deb 双击安装（推荐）
 
@@ -56,8 +56,10 @@ sudo apt install ./fsearch-0.3.2-1_amd64.deb
 
 ### 方式 B：便携 tar.gz（免安装）
 
-下载 `fsearch-0.3.2-uos20-portable.tar.gz` 与 `install_offline.sh`，
-两个文件放在同一目录，然后：
+下载 `fsearch-0.3.2-uos20-portable.tar.gz`，以及本仓库
+[`uos20-build/install_offline.sh`](uos20-build/install_offline.sh) 与
+[`uos20-build/uninstall_offline.sh`](uos20-build/uninstall_offline.sh)，
+把**三个文件放在同一目录**，然后：
 
 ```bash
 sudo bash install_offline.sh
