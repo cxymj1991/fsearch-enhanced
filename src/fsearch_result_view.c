@@ -3,6 +3,7 @@
 #include "fsearch_result_view.h"
 
 #include "fsearch.h"
+#include "fsearch_compat.h"
 #include "fsearch_config.h"
 #include "fsearch_database_entry_info.h"
 #include "fsearch_file_utils.h"
@@ -25,12 +26,6 @@ get_icon_size_for_height(int32_t height) {
         return 32;
     }
     return 48;
-}
-
-static void
-reset_icon_caches(FsearchResultView *result_view) {
-    g_hash_table_remove_all(result_view->pixbuf_cache);
-    g_hash_table_remove_all(result_view->app_gicon_cache);
 }
 
 static GdkPixbuf *
@@ -118,6 +113,15 @@ set_pango_layout_attributes(PangoLayout *layout, FsearchDatabaseEntryInfo *info,
     }
 
     pango_layout_set_attributes(layout, attrs);
+}
+
+FsearchDatabaseEntryInfo *
+fsearch_result_view_get_entry_info(FsearchResultView *view, uint32_t row) {
+    FsearchDatabaseEntryInfo *info = NULL;
+    if (!try_get_entry_info(view, row, &info) || !info) {
+        return NULL;
+    }
+    return fsearch_database_entry_info_ref(info);
 }
 
 char *
@@ -326,11 +330,13 @@ fsearch_result_view_draw_row(FsearchResultView *result_view,
     }
 
     const int32_t icon_size = get_icon_size_for_height(rect->height - ROW_PADDING_X);
+    const int32_t scale_factor = gdk_window_get_scale_factor(bin_window);
 
-    if (result_view->row_height != rect->height) {
-        reset_icon_caches(result_view);
+    if (result_view->row_height != rect->height || result_view->scale_factor != scale_factor) {
+        g_hash_table_remove_all(result_view->pixbuf_cache);
+        result_view->row_height = rect->height;
+        result_view->scale_factor = scale_factor;
     }
-    result_view->row_height = rect->height;
 
     gboolean pending = FALSE;
     FsearchDatabaseEntryInfo *info = NULL;
@@ -416,8 +422,7 @@ fsearch_result_view_draw_row(FsearchResultView *result_view,
                                                                                        bin_window,
                                                                                        icon,
                                                                                        icon_size,
-                                                                                       gdk_window_get_scale_factor(
-                                                                                           bin_window))
+                                                                                       scale_factor)
                                                          : NULL;
                     if (icon_surface) {
                         int32_t x_icon = x;
@@ -533,6 +538,16 @@ entry_info_free(FsearchDatabaseEntryInfo *info) {
     g_clear_pointer(&info, fsearch_database_entry_info_unref);
 }
 
+static void
+on_icon_theme_changed(GtkIconTheme *icon_theme, gpointer user_data) {
+    FsearchResultView *result_view = user_data;
+    g_hash_table_remove_all(result_view->pixbuf_cache);
+    g_hash_table_remove_all(result_view->icon_cache);
+    if (result_view->list_view) {
+        gtk_widget_queue_draw(GTK_WIDGET(result_view->list_view));
+    }
+}
+
 FsearchResultView *
 fsearch_result_view_new(guint view_id) {
     FsearchResultView *result_view = calloc(1, sizeof(FsearchResultView));
@@ -544,11 +559,16 @@ fsearch_result_view_new(guint view_id) {
                                                          NULL,
                                                          (GDestroyNotify)entry_info_free);
     result_view->db = fsearch_application_get_db(FSEARCH_APPLICATION_DEFAULT);
+
+    result_view->scale_factor = 1;
     result_view->pixbuf_cache = g_hash_table_new_full(g_icon_hash, (GEqualFunc)g_icon_equal, g_object_unref, g_object_unref);
-    result_view->app_gicon_cache = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
     result_view->icon_cache = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
     result_view->icon_loads = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 
+    result_view->icon_theme_change_handler_id = g_signal_connect(gtk_icon_theme_get_default(),
+                                                                 "changed",
+                                                                 G_CALLBACK(on_icon_theme_changed),
+                                                                 result_view);
     g_signal_connect(result_view->db, "item-info-ready", G_CALLBACK(on_item_info_ready), result_view);
     return result_view;
 }
@@ -556,9 +576,9 @@ fsearch_result_view_new(guint view_id) {
 void
 fsearch_result_view_free(FsearchResultView *result_view) {
     cancel_icon_loads(result_view);
+    g_clear_signal_handler(&result_view->icon_theme_change_handler_id, gtk_icon_theme_get_default());
     g_clear_pointer(&result_view->item_info_cache, g_hash_table_unref);
     g_clear_pointer(&result_view->pixbuf_cache, g_hash_table_unref);
-    g_clear_pointer(&result_view->app_gicon_cache, g_hash_table_unref);
     g_clear_pointer(&result_view->icon_cache, g_hash_table_unref);
     g_clear_pointer(&result_view->icon_loads, g_hash_table_unref);
     g_clear_object(&result_view->db);

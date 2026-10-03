@@ -2,7 +2,7 @@
 #
 # build_fsearch_uos20.sh
 # ---------------------------------------------------------------------------
-# 在「统信 UOS 20（基于 Debian 10）」的虚拟机里编译 fsearch 0.3.1，
+# 在「统信 UOS 20（基于 Debian 10）」的虚拟机里编译 fsearch 0.3.2，
 # 并打成一个「自带依赖、可直接拷贝到离线单位电脑」的便携 tar 包。
 #
 # 适用环境：
@@ -11,13 +11,13 @@
 #   - 目标机（单位电脑）：同版本 UOS 20，不能上网 —— 本脚本产出的包无需它联网
 #
 # 用法：
-#   sudo bash build_fsearch_uos20.sh /path/to/fsearch-0.3.1    # 传解压后的源码目录
-#   sudo bash build_fsearch_uos20.sh /path/to/fsearch-0.3.1.tar.gz  # 传源码 tar 包（自动解压）
+#   sudo bash build_fsearch_uos20.sh /path/to/fsearch-0.3.2    # 传解压后的源码目录
+#   sudo bash build_fsearch_uos20.sh /path/to/fsearch-0.3.2.tar.gz  # 传源码 tar 包（自动解压）
 #   sudo bash build_fsearch_uos20.sh                          # 不传：自动在脚本目录找
-#     （优先 fsearch-0.3.1 目录，其次 fsearch-*.tar.gz，都找不到才报错）
+#     （优先 fsearch-0.3.2 目录，其次 fsearch-*.tar.gz，都找不到才报错）
 #
 # 产物：
-#   当前目录下的 fsearch-0.3.1-uos20-portable.tar.gz
+#   当前目录下的 fsearch-0.3.2-uos20-portable.tar.gz
 #   拷到单位电脑后，用 install_offline.sh 解包即可。
 # ---------------------------------------------------------------------------
 set -euo pipefail
@@ -25,10 +25,18 @@ set -euo pipefail
 PREFIX="/opt/fsearch"
 WORK="$(mktemp -d)"
 DEST="$WORK/dest"                      # DESTDIR 根，里面会是 opt/fsearch/...
-OUT="$(pwd)/fsearch-0.3.1-uos20-portable.tar.gz"
 
 # 脚本自身所在目录（兼容路径含空格、中文、@ 等）
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# 源码根目录 = uos20-build/ 的上一级
+SRC_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# 所有产物统一放在源码文件夹内的「输出」子目录，与源码同处一地，
+# 避免在桌面 / 当前工作目录散落一堆文件。
+OUT_DIR="$SRC_ROOT/输出"
+mkdir -p "$OUT_DIR"
+OUT="$OUT_DIR/fsearch-0.3.2-uos20-portable.tar.gz"
 
 # 定位源码：优先用传入参数；未传则自动在脚本目录找（目录优先，其次 tar.gz）。
 # 传的是 tar.gz 时解压到临时目录。结果输出到 $WORK/src（源码根目录）。
@@ -48,7 +56,17 @@ locate_src() {
     fi
   else
     # 未传参：脚本目录里按优先级找
-    [ -d "$SCRIPT_DIR/fsearch-0.3.1" ] && candidate_dir="$SCRIPT_DIR/fsearch-0.3.1"
+    # 依次尝试 fsearch-0.3.2-enhanced（增强版实际目录名）、fsearch-0.3.2（上游原版目录名），
+    # 命中的那个直接用。这样无论用户把增强版还是原版目录放在哪都能自动识别。
+    for d in fsearch-0.3.2-enhanced fsearch-0.3.2; do
+      if [ -z "$candidate_dir" ] && [ -d "$SCRIPT_DIR/$d" ]; then
+        candidate_dir="$SCRIPT_DIR/$d"
+      fi
+    done
+    if [ -z "$candidate_dir" ] && [ -d "$SCRIPT_DIR/.." ] && [ -f "$SCRIPT_DIR/../src/meson.build" ]; then
+      # 兜底：源码就在脚本上一级（本项目 src/ 与 uos20-build/ 平级的布局）
+      candidate_dir="$SCRIPT_DIR/.."
+    fi
     if [ -z "$candidate_dir" ]; then
       # 恰好只有一个 fsearch-*.tar.gz 才自动用；多个则要求显式指定
       shopt -s nullglob
@@ -70,13 +88,13 @@ locate_src() {
     mkdir -p "$WORK/src"
     echo "== 解压源码 $candidate_tar ==" >&2
     tar -xzf "$candidate_tar" -C "$WORK/src"
-    # tar 包解压后通常是单个顶层目录（fsearch-0.3.1），取其第一个条目
+    # tar 包解压后通常是单个顶层目录（fsearch-0.3.2），取其第一个条目
     local extracted
     extracted="$(find "$WORK/src" -mindepth 1 -maxdepth 1 -type d | head -n1)"
     [ -n "$extracted" ] || { echo "tar 包内没有目录，解压失败" >&2; return 1; }
     echo "$extracted"
   else
-    echo "未找到源码。请把源码目录 fsearch-0.3.1 或 fsearch-*.tar.gz 放到脚本同目录，"
+    echo "未找到源码。请把源码目录 fsearch-0.3.2 或 fsearch-*.tar.gz 放到脚本同目录，"
     echo "或显式传入：sudo bash build_fsearch_uos20.sh <源码目录或tar.gz>" >&2
     return 1
   fi
@@ -114,41 +132,21 @@ echo "== [2/5] 配置并编译 =="
 echo "  使用源码: $SRC"
 cd "$SRC"
 
-# ---------- 兼容补丁：UOS20 自带 GLib 2.58，而 fsearch 0.3.1 用了 2.62 才有的 g_ptr_array_copy ----------
+# ---------- GLib 版本兼容 ----------
+# 0.3.2 上游要求 GLib >= 2.62，而 UOS 20（Debian 10）自带 GLib 2.58.3。
 # 不能用「升级构建机 glib」来解决——目标机也是 2.58，升了链接出来的二进制在目标机照样跑不起来。
-# 这里把两处调用替换为 2.58 就有的等价写法（语义不变）。重跑脚本时已打过补丁会自动跳过。
-python3 - <<'PY'
-files = {
-  "src/fsearch_database_exclude_manager.c": (
-    "    copy->excludes = g_ptr_array_copy(self->excludes, (GCopyFunc)fsearch_database_exclude_copy, NULL);",
-    "    copy->excludes = g_ptr_array_new_with_free_func((GDestroyNotify)fsearch_database_exclude_unref);\n"
-    "    for (guint i = 0; i < self->excludes->len; i++) {\n"
-    "        FsearchDatabaseExclude *e = g_ptr_array_index(self->excludes, i);\n"
-    "        g_ptr_array_add(copy->excludes, fsearch_database_exclude_copy(e));\n"
-    "    }"
-  ),
-  "src/fsearch_database_include_manager.c": (
-    "    copy->includes = g_ptr_array_copy(self->includes, (GCopyFunc)fsearch_database_include_copy, NULL);",
-    "    copy->includes = g_ptr_array_new_with_free_func((GDestroyNotify)fsearch_database_include_unref);\n"
-    "    for (guint i = 0; i < self->includes->len; i++) {\n"
-    "        FsearchDatabaseInclude *e = g_ptr_array_index(self->includes, i);\n"
-    "        g_ptr_array_add(copy->includes, fsearch_database_include_copy(e));\n"
-    "    }"
-  ),
-}
-for path, (old, new) in files.items():
-    try:
-        with open(path, "r") as f:
-            src = f.read()
-    except FileNotFoundError:
-        print("跳过(文件不存在):", path); continue
-    if old not in src:
-        print("已是补丁状态或找不到目标行，跳过:", path); continue
-    src = src.replace(old, new, 1)
-    with open(path, "w") as f:
-        f.write(src)
-    print("已打补丁:", path)
-PY
+#
+# 本增强版已把 src/meson.build 的依赖下限调回 2.58，并在 src/fsearch_compat.h 里为
+# 0.3.2 真正用到的两个 2.62 新 API（g_ptr_array_copy / g_clear_signal_handler）
+# 提供了语义等价的垫片实现（GLIB_VERSION_MAX_ALLOWED 条件编译）。
+# 因此这里无需再改写源码，只需校验垫片文件在位，避免误用上游原版目录编译。
+if [ ! -f "$SRC/src/fsearch_compat.h" ]; then
+  echo "错误：源码里缺少 src/fsearch_compat.h（GLib 2.58 兼容垫片）。" >&2
+  echo "     当前源码: $SRC" >&2
+  echo "     请确认编译的是本增强版源码目录，而不是上游 fsearch-0.3.2 原版 tar 包。" >&2
+  exit 1
+fi
+echo "  已找到 GLib 兼容垫片: src/fsearch_compat.h"
 
 rm -rf build
 meson setup build --prefix="$PREFIX" --buildtype=release
@@ -207,7 +205,7 @@ chmod +x "$DEST$PREFIX/bin/fsearch"
 
 # 顺手把 README 也打进包里，方便单位电脑上查看
 cat > "$DEST$PREFIX/README.txt" <<'EOF'
-FSearch 0.3.1 便携包（为统信 UOS 20 / Debian 10 编译）
+FSearch 0.3.2 便携包（为统信 UOS 20 / Debian 10 编译）
 - 直接运行：/opt/fsearch/bin/fsearch
 - 或在 install_offline.sh 之后直接敲：fsearch
 - 卸载：sudo rm -rf /opt/fsearch /usr/local/bin/fsearch
@@ -220,5 +218,8 @@ echo "完成！产物："
 echo "  $OUT"
 echo "大小： $(du -h "$OUT" | cut -f1)"
 echo
-echo "下一步：把上面这个 tar.gz 用 U 盘拷到单位电脑，"
-echo "再执行：sudo bash install_offline.sh fsearch-0.3.1-uos20-portable.tar.gz"
+echo "下一步："
+echo "  1) 若需要 .deb（双击安装）：在同目录执行  bash build_deb.sh"
+echo "  2) 把「输出」目录里的文件拷到离线单位电脑安装："
+echo "     - .deb  → 双击安装（可能被『应用安全』拦一次）"
+echo "     - tar.gz + install_offline.sh 放同一目录 → sudo bash install_offline.sh"

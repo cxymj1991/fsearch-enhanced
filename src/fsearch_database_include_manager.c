@@ -1,4 +1,5 @@
 #include "fsearch_database_include_manager.h"
+#include "fsearch_compat.h"
 
 #include "fsearch_database_include.h"
 

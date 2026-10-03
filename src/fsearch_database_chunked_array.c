@@ -112,10 +112,6 @@ split_chunk(DynamicArray *chunk, uint32_t target_chunk_size, GDestroyNotify entr
     const uint32_t num_chunks = ceil(num_items_in_chunk / (double)target_chunk_size);
     const uint32_t num_items_per_chunk = floor(num_items_in_chunk / (double)num_chunks);
 
-    g_debug("[chunk] splitting: %d", num_items_in_chunk);
-    g_debug("[chunk] num_chunks: %d", num_chunks);
-    g_debug("[chunk] num_items_per_chunk: %d", num_items_per_chunk);
-
     DynamicArray *chunks = darray_new_full(num_chunks, (GDestroyNotify)darray_unref);
     for (uint32_t n = 0; n < num_chunks; ++n) {
         DynamicArray *chunk_slice = darray_get_range(chunk,
@@ -137,7 +133,6 @@ balance_chunk(FsearchDatabaseChunkedArray *self, DynamicArray *chunk, uint32_t c
             // Don't remove the last chunk
             return;
         }
-        g_debug("[balance_chunk] remove empty: %d", chunk_idx);
         darray_set_free_func(chunk, NULL);
         darray_remove(self->chunks, chunk_idx, 1);
         chunk = NULL;
@@ -149,11 +144,6 @@ balance_chunk(FsearchDatabaseChunkedArray *self, DynamicArray *chunk, uint32_t c
     }
 
     g_autoptr(DynamicArray) splitted = split_chunk(chunk, self->target_chunk_size, self->entry_free_func);
-
-    g_debug("[balance_chunk] split idx %d with %d entries into %d chunks",
-            chunk_idx,
-            darray_get_num_items(chunk),
-            darray_get_num_items(splitted));
 
     darray_set_free_func(chunk, NULL);
     darray_remove(self->chunks, chunk_idx, 1);
@@ -436,17 +426,25 @@ is_marked(FsearchDatabaseEntry *entry, FsearchDatabaseEntryType type) {
 // Finds and removes every marked entry in `self`. If `destination` is non-NULL, removed
 // entries are stolen into it (ownership transferred, no destructor called); otherwise they
 // are dropped from their chunk and freed via the chunk's entry_free_func (if any is set).
-// Returns the number of entries removed.
 static uint32_t
-remove_marked_entries(FsearchDatabaseChunkedArray *self, DynamicArray *destination) {
+remove_marked_entries(FsearchDatabaseChunkedArray *self, DynamicArray *destination, int32_t num_expected_entries) {
     uint32_t chunk_idx = 0;
     uint32_t entry_start_idx = 0;
     uint32_t removed_entries = 0;
 
+    const bool num_entries_known = num_expected_entries >= 0;
+    const uint32_t num_expected = num_entries_known ? (uint32_t)num_expected_entries : 0;
+
     while (chunk_idx < darray_get_num_items(self->chunks)) {
+        if (num_entries_known && removed_entries >= num_expected) {
+            break;
+        }
         DynamicArray *chunk = darray_get_item(self->chunks, chunk_idx);
         uint32_t entry_idx = entry_start_idx;
         while (entry_idx < darray_get_num_items(chunk)) {
+            if (num_entries_known && removed_entries >= num_expected) {
+                break;
+            }
             FsearchDatabaseEntry *maybe_marked = darray_get_item(chunk, entry_idx);
             if (is_marked(maybe_marked, self->entry_type)) {
                 uint32_t n_elements = 1;
@@ -458,6 +456,12 @@ remove_marked_entries(FsearchDatabaseChunkedArray *self, DynamicArray *destinati
                         break; // End of contiguous block
                     }
                     n_elements++;
+                }
+
+                if (num_entries_known) {
+                    // The block may be longer than what the caller asked for. Removing the surplus would
+                    // free entries the caller still owns, so stop at the budget
+                    n_elements = MIN(n_elements, num_expected - removed_entries);
                 }
 
                 // Steal or drop the entire contiguous block at once to minimize memmoves
@@ -479,24 +483,35 @@ remove_marked_entries(FsearchDatabaseChunkedArray *self, DynamicArray *destinati
         entry_start_idx = 0;
     }
 
+    if (num_entries_known && removed_entries != num_expected) {
+        // The caller's count disagrees with the marks. Carry on with what was actually removed rather
+        // than taking the process down
+        g_warning("[chunked_array] expected %u marked entries, found %u", num_expected, removed_entries);
+    }
+
     self->num_entries -= removed_entries;
     return removed_entries;
 }
 
-DynamicArray *
-fsearch_database_chunked_array_steal_marked_folders(FsearchDatabaseChunkedArray *self) {
-    g_return_val_if_fail(self, NULL);
-
-    DynamicArray *marked_entries = darray_new(128);
-    remove_marked_entries(self, marked_entries);
-    return marked_entries;
-}
-
 uint32_t
-fsearch_database_chunked_array_remove_marked_folders(FsearchDatabaseChunkedArray *self) {
+fsearch_database_chunked_array_remove_marked_folders(FsearchDatabaseChunkedArray *self, int32_t num_expected_entries) {
     g_return_val_if_fail(self, 0);
 
-    return remove_marked_entries(self, NULL);
+    return remove_marked_entries(self, NULL, num_expected_entries);
+}
+
+// With a path sort order a folder's descendants form one contiguous run, so checking both ends is
+// enough to tell whether a whole block belongs to `folder`.
+static bool
+block_is_descendant_of(DynamicArray *chunk, uint32_t start_idx, uint32_t n_elements, FsearchDatabaseEntry *folder) {
+    const uint32_t num_items = darray_get_num_items(chunk);
+    if (start_idx >= num_items) {
+        // Nothing to take from this chunk, the run continues in the next one
+        return true;
+    }
+    const uint32_t last_idx = MIN(start_idx + n_elements, num_items) - 1;
+    return db_entry_is_descendant(darray_get_item(chunk, start_idx), folder)
+        && db_entry_is_descendant(darray_get_item(chunk, last_idx), folder);
 }
 
 DynamicArray *
@@ -506,44 +521,75 @@ fsearch_database_chunked_array_steal_descendants(FsearchDatabaseChunkedArray *se
     g_return_val_if_fail(self, NULL);
     g_return_val_if_fail(folder, NULL);
 
+    // We can only steal in large chunks when descendants are sorted one after another
+    // That's only guaranteed when sorted by path or path_full
+    const bool path_sorted = self->chain.length > 0
+                          && (self->chain.properties[0] == DATABASE_INDEX_PROPERTY_PATH
+                              || self->chain.properties[0] == DATABASE_INDEX_PROPERTY_PATH_FULL);
+
     uint32_t chunk_idx = 0;
     uint32_t entry_start_idx = 0;
-    if (self->chain.properties[0] == DATABASE_INDEX_PROPERTY_PATH_FULL) {
-        DynamicArray *chunk = get_chunk_for_entry(self, folder, &chunk_idx);
-        darray_binary_search_with_data(chunk, folder, self->entry_comp_func, self->compare_context, &entry_start_idx);
+    if (path_sorted) {
+        // A dummy named "" sorts after `folder` and before every descendant
+        FsearchDatabaseEntry *probe = db_entry_get_dummy_for_name_and_parent(folder, "", self->entry_type);
+        DynamicArray *start_chunk = get_chunk_for_entry(self, probe, &chunk_idx);
+        darray_binary_search_with_data(start_chunk, probe, self->entry_comp_func, self->compare_context, &entry_start_idx);
+        g_clear_pointer(&probe, db_entry_free_no_unparent);
     }
 
     DynamicArray *descendants = darray_new(num_known_descendants >= 0 ? num_known_descendants : 128);
 
     uint32_t num_known_descendants_stolen = 0;
 
+    // Both are given up on if the array turns out not to match the order or the count we were promised
+    bool trust_order = path_sorted;
+    bool count_known = num_known_descendants >= 0;
+    const uint32_t num_expected = count_known ? (uint32_t)num_known_descendants : 0;
+
+    bool descendant_run_ended = false;
     while (chunk_idx < darray_get_num_items(self->chunks)) {
-        if (num_known_descendants == num_known_descendants_stolen) {
+        if (count_known && num_known_descendants_stolen >= num_expected) {
             // We've found all known descendants and are done here.
             break;
         }
         DynamicArray *chunk = darray_get_item(self->chunks, chunk_idx);
         uint32_t entry_idx = entry_start_idx;
 
-        if (num_known_descendants >= 0 && self->chain.properties[0] == DATABASE_INDEX_PROPERTY_PATH_FULL) {
-            // We know the exact number of descendants, and due to the `DATABASE_INDEX_PROPERTY_PATH_FULL` sort type,
-            // it is guaranteed that they are all sorted next to each other. Therefore, we can use an optimized code
+        if (count_known && trust_order) {
+            // We know the exact number of descendants, and both path sort orders guarantee they are
+            // all sorted next to each other. Therefore, we can use an optimized code
             // path where we steal them in large chunks, instead of one by one.
             // It's also safe to not clamp n_elements since darray_steal will only steal the available number of
             // elements and report the actual amount stolen
-            num_known_descendants_stolen += darray_steal(chunk,
-                                                         entry_start_idx,
-                                                         num_known_descendants - num_known_descendants_stolen,
-                                                         descendants);
+            const uint32_t n_wanted = num_expected - num_known_descendants_stolen;
+            if (!block_is_descendant_of(chunk, entry_start_idx, n_wanted, folder)) {
+                // Either the entries aren't ordered the way the sort chain says, or the child counts
+                // are stale. Restart with the scan that relies on neither.
+                g_warning("[chunked_array] expected %u descendants next to each other, but found other entries; "
+                          "falling back to a full scan",
+                          num_expected);
+                trust_order = false;
+                count_known = false;
+                chunk_idx = 0;
+                entry_start_idx = 0;
+                continue;
+            }
+            num_known_descendants_stolen += darray_steal(chunk, entry_start_idx, n_wanted, descendants);
         }
         else {
-            // Unfortunately, we have to steal/remove descendants one by one.
+            // Steal/remove descendants one by one.
             while (entry_idx < darray_get_num_items(chunk)) {
                 FsearchDatabaseEntry *maybe_descendant = darray_get_item(chunk, entry_idx);
                 if (db_entry_is_descendant(maybe_descendant, folder)) {
                     darray_add_item(descendants, maybe_descendant);
                     darray_drop(chunk, entry_idx, 1);
                     continue;
+                }
+                if (trust_order) {
+                    // we reached the first non-descendant in a path sorted array, it is guaranteed
+                    // that there won't be any more descendants -> we're done
+                    descendant_run_ended = true;
+                    break;
                 }
                 entry_idx++;
             }
@@ -553,11 +599,14 @@ fsearch_database_chunked_array_steal_descendants(FsearchDatabaseChunkedArray *se
 
         // Remove the chunk if it became empty (unless it's the last one left).
         chunk_idx = advance_past_chunk(self, chunk, chunk_idx);
+
+        if (descendant_run_ended) {
+            break;
+        }
     }
 
-    if (num_known_descendants >= 0) {
-        // Ensure that we got the exact number of descendants
-        g_assert(num_known_descendants == darray_get_num_items(descendants));
+    if (count_known && darray_get_num_items(descendants) != num_expected) {
+        g_warning("[chunked_array] expected %u descendants, stole %u", num_expected, darray_get_num_items(descendants));
     }
 
     self->num_entries -= darray_get_num_items(descendants);

@@ -33,6 +33,7 @@
 #include "fsearch_window.h"
 #include "fsearch_window_actions.h"
 #include "fsearch_tray.h"
+#include "fsearch_drag_drop.h"
 #include <glib/gi18n.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -79,15 +80,15 @@ struct _FsearchApplicationWindow {
 
     FsearchResultView *result_view;
 
-    // 搜索范围限定（顶部“搜索范围”下拉框，或右键“用 FSearch 搜索”带入）。
+    // 搜索范围限定（顶部"搜索范围"下拉框，或右键"用 FSearch 搜索"带入）。
     // 为 NULL 表示搜索整个数据库；非 NULL 表示只在该文件夹（含子目录）内搜索。
     char *search_root_limiter;
 
-    // 顶部“搜索范围”下拉框（GtkComboBoxText）：整个数据库 / 已选文件夹 / 选择文件夹…
+    // 顶部"搜索范围"下拉框（GtkComboBoxText）：整个数据库 / 已选文件夹 / 选择文件夹…
     GtkWidget *scope_combo;
     // 程序内切换下拉框选中项时置位，避免触发 changed 回调造成递归
     bool scope_changing;
-    // 已生效的“搜索范围”下拉框最大宽度（像素）；-1 表示未施加限制（自然宽度即可）。
+    // 已生效的"搜索范围"下拉框最大宽度（像素）；-1 表示未施加限制（自然宽度即可）。
     // 用于把框宽限制在窗口宽度的 1/2 以内，避免长路径把搜索框挤窄。
     gint scope_combo_cap;
 };
@@ -594,7 +595,6 @@ perform_search(FsearchApplicationWindow *win) {
     }
 
     const gchar *text = get_query_text(win);
-
     const guint win_id = gtk_application_window_get_id(GTK_APPLICATION_WINDOW(win));
     FsearchFilter *filter = get_active_filter(win);
     FsearchConfig *config = fsearch_application_get_config(FSEARCH_APPLICATION_DEFAULT);
@@ -616,10 +616,19 @@ perform_search(FsearchApplicationWindow *win) {
 }
 
 // 崩溃轨迹日志（实现见下方 scope_trace 定义）
-static void scope_trace(const char *fmt, ...);
+static void
+scope_trace(const char *fmt, ...);
 
-// 让“搜索范围”下拉框的文本渲染器支持省略号。
-// 关键：GtkComboBox 内默认的 GtkCellRendererText 不省略文本时，其“最小宽度”= 完整文本宽度，
+// 弹出原生文件夹选择对话框（实现见下方）
+static void
+scope_pick_folder(FsearchApplicationWindow *win);
+
+// 原生对话框的 response 回调（实现见下方）
+static void
+on_scope_folder_native_response(GtkNativeDialog *dialog, GtkResponseType response, gpointer user_data);
+
+// 让"搜索范围"下拉框的文本渲染器支持省略号。
+// 关键：GtkComboBox 内默认的 GtkCellRendererText 不省略文本时，其"最小宽度"= 完整文本宽度，
 // 会覆盖 set_size_request 的宽度限制（限制形同虚设）。设了 ellipsize 后宽度才能真正被压到上限。
 static void
 scope_combo_set_ellipsize(GtkComboBoxText *cb) {
@@ -632,11 +641,12 @@ scope_combo_set_ellipsize(GtkComboBoxText *cb) {
     g_list_free(cells);
 }
 
-// 把“搜索范围”下拉框宽度限制为不超过窗口 1/2（实现见下方 scope_combo_rebuild 之后）
-static void scope_combo_apply_width_limit(FsearchApplicationWindow *win);
+// 把"搜索范围"下拉框宽度限制为不超过窗口 1/2（实现见下方 scope_combo_rebuild 之后）
+static void
+scope_combo_apply_width_limit(FsearchApplicationWindow *win);
 
-// 顶部“搜索范围”下拉框：重建条目并把当前选中项指向 active_id。
-// 条目顺序：整个数据库(all) / [已选文件夹(folder)] / 选择文件夹…(browse)
+// 顶部"搜索范围"下拉框：重建条目并把当前选中项指向 active_id。
+// 条目顺序：整个数据库(all) / [已选文件夹(folder)] / 选择文件夹…(browse) / 最近历史 / 清除历史记录
 static void
 scope_combo_rebuild(FsearchApplicationWindow *win, const char *active_id) {
     GtkComboBoxText *cb = GTK_COMBO_BOX_TEXT(win->scope_combo);
@@ -652,7 +662,7 @@ scope_combo_rebuild(FsearchApplicationWindow *win, const char *active_id) {
         gtk_combo_box_text_append(cb, "folder", win->search_root_limiter);
     }
     gtk_combo_box_text_append(cb, "browse", "选择文件夹…");
-    // 最近选择历史（最新在最上，最多 10 个），显示在“选择文件夹…”下方。
+    // 最近选择历史（最新在最上，最多 10 个），显示在"选择文件夹…"下方。
     // 与当前已选文件夹（folder 项）相同的路径不再重复展示，避免两行一模一样。
     FsearchConfig *hcfg = fsearch_application_get_config(FSEARCH_APPLICATION_DEFAULT);
     if (hcfg && hcfg->recent_folders) {
@@ -678,9 +688,9 @@ scope_combo_rebuild(FsearchApplicationWindow *win, const char *active_id) {
     scope_combo_apply_width_limit(win);
 }
 
-// 把“搜索范围”下拉框的显示宽度限制为不超过窗口宽度的 1/2，
+// 把"搜索范围"下拉框的显示宽度限制为不超过窗口宽度的 1/2，
 // 避免长文件夹路径把搜索框挤窄。自然宽度不足 1/2 时不施加限制（保留自然大小）。
-// 实现要点：先解除已施加的上限，才能测到“真实”自然宽度（否则 set_size_request 会影响测量结果）。
+// 实现要点：先解除已施加的上限，才能测到"真实"自然宽度（否则 set_size_request 会影响测量结果）。
 static void
 scope_combo_apply_width_limit(FsearchApplicationWindow *win) {
     GtkWidget *cb = win->scope_combo;
@@ -689,7 +699,7 @@ scope_combo_apply_width_limit(FsearchApplicationWindow *win) {
     }
     gint win_w = gtk_widget_get_allocated_width(GTK_WIDGET(win));
     if (win_w <= 1) {
-        return;  // 窗口尚未完成首帧布局，宽度未知，暂不处理（后续 size-allocate 会再触发）
+        return; // 窗口尚未完成首帧布局，宽度未知，暂不处理（后续 size-allocate 会再触发）
     }
     if (win->scope_combo_cap > 0) {
         // 当前施加了上限，先解除才能测到真实自然宽度
@@ -705,7 +715,7 @@ scope_combo_apply_width_limit(FsearchApplicationWindow *win) {
     }
 }
 
-// 把 folder 记入“搜索范围”最近选择历史：去重后置于最前、最多保留 10 个，并持久化到配置。
+// 把 folder 记入"搜索范围"最近选择历史：去重后置于最前、最多保留 10 个，并持久化到配置。
 // folder 必须是一个真实存在的目录。
 static void
 scope_history_add(FsearchApplicationWindow *win, const char *folder) {
@@ -735,7 +745,7 @@ scope_history_add(FsearchApplicationWindow *win, const char *folder) {
     config_save(config);
 }
 
-// 清空“搜索范围”最近选择历史并持久化；不改变当前搜索范围，仅重建下拉框。
+// 清空"搜索范围"最近选择历史并持久化；不改变当前搜索范围，仅重建下拉框。
 static void
 scope_history_clear(FsearchApplicationWindow *win) {
     FsearchConfig *config = fsearch_application_get_config(FSEARCH_APPLICATION_DEFAULT);
@@ -755,7 +765,7 @@ set_scope(FsearchApplicationWindow *win, const char *folder) {
     g_clear_pointer(&win->search_root_limiter, free);
     if (folder && *folder) {
         win->search_root_limiter = g_strdup(folder);
-        scope_history_add(win, folder);   // 选中具体文件夹时记入最近选择历史
+        scope_history_add(win, folder); // 选中具体文件夹时记入最近选择历史
     }
     win->scope_changing = TRUE;
     scope_combo_rebuild(win, win->search_root_limiter ? "folder" : "all");
@@ -769,17 +779,6 @@ fsearch_application_window_set_scope(FsearchApplicationWindow *self, const char 
     g_assert(FSEARCH_IS_APPLICATION_WINDOW(self));
     set_scope(self, folder);
 }
-
-// 选择搜索范围的文件夹：复用与「首选项-数据库-加号」完全一致的原生文件夹选择对话框
-// （GTK≥3.20 走 GtkFileChooserNative，即系统原生文件选择器；deepin/UOS 上已验证可用）。
-// 旧版自研的目录选择器已废弃：用系统原生对话框体验一致、且无需自己维护。
-typedef struct {
-    FsearchApplicationWindow *win;
-} FsearchScopeBrowseData;
-
-typedef struct {
-    FsearchApplicationWindow *win;
-} FsearchScopePickData;
 
 // 崩溃轨迹日志：下拉框选文件夹闪退时，把每一步写进 ~/.cache/fsearch/scope-browse.log，
 // 便于事后定位到底卡在哪一步（闪退前的最后一行即崩溃点）。不影响正常功能。
@@ -808,6 +807,33 @@ scope_trace(const char *fmt, ...) {
     g_free(cachedir);
 }
 
+typedef struct {
+    FsearchApplicationWindow *win;
+} FsearchScopePickData;
+
+// 弹出原生文件夹选择对话框（GTK≥3.20 走 GtkFileChooserNative，即系统原生文件选择器）。
+// 调用方需先对 win 持有引用（on_scope_combo_changed 里 g_object_ref 后转交至此）。
+static void
+scope_pick_folder(FsearchApplicationWindow *win) {
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
+    GtkWidget *window = GTK_WIDGET(win);
+    const char *start = (win->search_root_limiter && g_file_test(win->search_root_limiter, G_FILE_TEST_IS_DIR))
+        ? win->search_root_limiter
+        : g_get_home_dir();
+    FsearchScopePickData *data = g_new0(FsearchScopePickData, 1);
+    data->win = win;
+    GtkFileChooserNative *dialog = gtk_file_chooser_native_new(_("选择搜索范围文件夹"),
+                                                               GTK_WINDOW(window),
+                                                               action,
+                                                               _("_选择"),
+                                                               _("_取消"));
+    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), start);
+    gtk_native_dialog_set_transient_for(GTK_NATIVE_DIALOG(dialog), GTK_WINDOW(window));
+    gtk_native_dialog_set_modal(GTK_NATIVE_DIALOG(dialog), TRUE);
+    g_signal_connect(dialog, "response", G_CALLBACK(on_scope_folder_native_response), data);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(dialog));
+}
+
 static void
 on_scope_folder_native_response(GtkNativeDialog *dialog, GtkResponseType response, gpointer user_data) {
     FsearchScopePickData *data = user_data;
@@ -829,70 +855,10 @@ on_scope_folder_native_response(GtkNativeDialog *dialog, GtkResponseType respons
     g_free(data);
 }
 
-#if !GTK_CHECK_VERSION(3, 20, 0)
-static void
-on_scope_folder_dialog_response(GtkFileChooserDialog *dialog, GtkResponseType response, gpointer user_data) {
-    FsearchScopePickData *data = user_data;
-    FsearchApplicationWindow *win = data->win;
-    if (response == GTK_RESPONSE_ACCEPT) {
-        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
-        gchar *filename = gtk_file_chooser_get_filename(chooser);
-        if (filename) {
-            scope_trace("dialog ACCEPT: %s", filename);
-            set_scope(win, filename);
-            g_free(filename);
-        }
-    }
-    gtk_widget_destroy(GTK_WIDGET(dialog));
-    g_object_unref(win);
-    g_free(data);
-}
-#endif
-
-// 弹出原生文件夹选择对话框。调用方需先对 win 持有引用
-// （on_scope_combo_changed 里 FsearchScopeBrowseData 的引用转移至此，本函数不再额外 ref）。
-static void
-scope_pick_folder(FsearchApplicationWindow *win) {
-    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
-    GtkWidget *window = GTK_WIDGET(win);
-    const char *start = (win->search_root_limiter && g_file_test(win->search_root_limiter, G_FILE_TEST_IS_DIR))
-        ? win->search_root_limiter
-        : g_get_home_dir();
-    FsearchScopePickData *data = g_new0(FsearchScopePickData, 1);
-    data->win = win;
-
-#if !GTK_CHECK_VERSION(3, 20, 0)
-    GtkWidget *dialog = gtk_file_chooser_dialog_new(_("选择搜索范围文件夹"),
-                                                    GTK_WINDOW(window),
-                                                    action,
-                                                    _("_取消"), GTK_RESPONSE_CANCEL,
-                                                    _("_选择"), GTK_RESPONSE_ACCEPT,
-                                                    NULL);
-    g_signal_connect(dialog, "response", G_CALLBACK(on_scope_folder_dialog_response), data);
-    gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(window));
-    gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
-    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), start);
-    gtk_widget_show(dialog);
-#else
-    GtkFileChooserNative *dialog = gtk_file_chooser_native_new(_("选择搜索范围文件夹"),
-                                                               GTK_WINDOW(window),
-                                                               action,
-                                                               _("_选择"),
-                                                               _("_取消"));
-    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), start);
-    gtk_native_dialog_set_transient_for(GTK_NATIVE_DIALOG(dialog), GTK_WINDOW(window));
-    gtk_native_dialog_set_modal(GTK_NATIVE_DIALOG(dialog), TRUE);
-    g_signal_connect(dialog, "response", G_CALLBACK(on_scope_folder_native_response), data);
-    gtk_native_dialog_show(GTK_NATIVE_DIALOG(dialog));
-#endif
-}
-
 static gboolean
 on_scope_browse_idle(gpointer user_data) {
     scope_trace("idle: ENTERED");
-    FsearchScopeBrowseData *data = user_data;
-    FsearchApplicationWindow *win = data->win;
-    g_free(data);
+    FsearchApplicationWindow *win = user_data;
     scope_trace("idle: start");
     scope_pick_folder(win);
     scope_trace("idle: native dialog shown");
@@ -907,8 +873,7 @@ on_scope_combo_changed(GtkComboBox *widget, gpointer user_data) {
         return;
     }
     // 注意：get_active_id 返回的字符串在 deepin 的 GTK 上并不保证是独立拷贝，
-    // 会在后续 scope_combo_rebuild 的 remove_all 中被释放。因此这里不 g_free(id)，
-    // 否则会二次释放导致段错误（见 scope-browse.log：崩溃恰在 g_idle_add 之后、g_free(id) 处）。
+    // 会在后续 scope_combo_rebuild 的 remove_all 中被释放。因此这里不 g_free(id)。
     const char *id = gtk_combo_box_get_active_id(widget);
     if (!id) {
         return;
@@ -918,28 +883,18 @@ on_scope_combo_changed(GtkComboBox *widget, gpointer user_data) {
     }
     else if (g_strcmp0(id, "browse") == 0) {
         // 关键修复：必须在 changed 回调里同步把下拉框复位到当前有效选择（整个数据库 / 已选文件夹）。
-        // 实测（见 ~/.cache/fsearch/scope-browse.log）：若让 combo 停在 "browse" 项上、只 g_idle_add 弹窗，
-        // changed 回调返回后 deepin 组合框弹层的回收过程会段错误——idle 根本来不及执行
-        // （日志里 "changed->browse: schedule idle" 之后再无 "idle: start" 即为证）。
-        // 而 "整个数据库 / 已选文件夹" 两条之所以不崩，正因为它们走了 set_scope→scope_combo_rebuild
-        // 把 combo 重建过一次。这里同样重建一次以规避该 deepin 弹层回收崩溃。
-        // （旧注释"不要在 changed 里 set_active_id"是误判——folder/all 一直在这么做且不崩。）
+        // 实测：若让 combo 停在 "browse" 项上、只 g_idle_add 弹窗，changed 回调返回后
+        // deepin 组合框弹层的回收过程会段错误——idle 根本来不及执行。
         scope_combo_rebuild(win, win->search_root_limiter ? "folder" : "all");
         // 再延后到下一次主循环迭代弹出原生文件夹选择对话框（届时弹层已完全收起，安全）。
-        FsearchScopeBrowseData *data = g_new0(FsearchScopeBrowseData, 1);
-        data->win = win;
         g_object_ref(win);
         scope_trace("changed->browse: rebuilt combo, scheduling idle");
-        g_idle_add(on_scope_browse_idle, data);
+        g_idle_add(on_scope_browse_idle, win);
     }
     else if (g_strcmp0(id, "folder") == 0) {
-        // 重新选中已选文件夹，范围不变，重新执行一次搜索
         set_scope(win, win->search_root_limiter);
     }
     else if (g_strcmp0(id, "clear_history") == 0) {
-        // 清空最近选择历史（不改变当前搜索范围）。
-        // 注意：scope_history_clear 内部会 rebuild combo（remove_all 会释放 id 当前模型字符串），
-        // 因此本分支不得再解引用 id。
         scope_history_clear(win);
     }
     else if (g_str_has_prefix(id, "recent:")) {
@@ -948,8 +903,7 @@ on_scope_combo_changed(GtkComboBox *widget, gpointer user_data) {
         // remove_all 会释放 id 当前指向的模型字符串，之后再解引用 id 即野指针。
         FsearchConfig *config = fsearch_application_get_config(FSEARCH_APPLICATION_DEFAULT);
         guint idx = 0;
-        if (config && config->recent_folders
-            && sscanf(id, "recent:%u", &idx) == 1 && idx < config->recent_folders->len) {
+        if (config && config->recent_folders && sscanf(id, "recent:%u", &idx) == 1 && idx < config->recent_folders->len) {
             const char *p = (const char *)g_ptr_array_index(config->recent_folders, idx);
             if (p && *p) {
                 char *path = g_strdup(p);
@@ -958,8 +912,6 @@ on_scope_combo_changed(GtkComboBox *widget, gpointer user_data) {
             }
         }
     }
-    // 不 g_free(id)：见上方注释，deepin 上该指针会被 scope_combo_rebuild 释放，二次释放会段错误。
-    // id 仅用于上面的 g_strcmp0 比较，用完即弃，无需释放。
     scope_trace("changed: returning");
 }
 
@@ -1042,13 +994,9 @@ on_fsearch_list_view_row_activated(FsearchListView *view, FsearchDatabaseIndexPr
     FsearchApplicationWindow *self = user_data;
 
     FsearchConfig *config = fsearch_application_get_config(FSEARCH_APPLICATION_DEFAULT);
-    int launch_folder = false;
-    if (config->double_click_path && col == DATABASE_INDEX_PROPERTY_PATH) {
-        launch_folder = true;
-    }
+    const bool launch_folder = config->double_click_path && col == DATABASE_INDEX_PROPERTY_PATH;
 
-    fsearch_window_action_open_generic(self, launch_folder ? true : false, true);
-    return;
+    fsearch_window_action_open_row(self, (uint32_t)row_idx, launch_folder);
 }
 
 static void
@@ -1354,7 +1302,7 @@ on_database_scan_started(FsearchDatabase *db2, gpointer user_data) {
 
 static void
 on_window_size_allocate(GtkWidget *widget, GdkRectangle *allocation, gpointer user_data) {
-    // 窗口宽度变化后，重新评估“搜索范围”下拉框的宽度上限（不超过窗口 1/2）。
+    // 窗口宽度变化后，重新评估"搜索范围"下拉框的宽度上限（不超过窗口 1/2）。
     (void)allocation;
     FsearchApplicationWindow *win = FSEARCH_APPLICATION_WINDOW(widget);
     scope_combo_apply_width_limit(win);
@@ -1370,8 +1318,8 @@ fsearch_application_window_init(FsearchApplicationWindow *self) {
     // 图标名在 fsearch_application_startup 中已把自带图标目录加入主题搜索路径。
     gtk_window_set_icon_name(GTK_WINDOW(self), "io.github.cboxdoerfer.FSearch");
 
-    // 初始化顶部“搜索范围”下拉框：默认“整个数据库”
-    self->scope_combo_cap = -1;  // -1 表示未施加宽度上限（使用自然宽度）
+    // 初始化顶部"搜索范围"下拉框：默认"整个数据库"
+    self->scope_combo_cap = -1; // -1 表示未施加宽度上限（使用自然宽度）
     scope_combo_rebuild(self, "all");
     // 窗口尺寸变化时重算下拉框宽度上限（首次分配宽度后会触发一次，此时才真正生效）
     g_signal_connect(self, "size-allocate", G_CALLBACK(on_window_size_allocate), NULL);
@@ -1384,6 +1332,14 @@ fsearch_application_window_init(FsearchApplicationWindow *self) {
 
     fsearch_window_actions_init(self);
     fsearch_application_window_init_listview(self);
+    // 结果列表支持多选后拖拽：把选中项以 text/uri-list 拖到文件管理器/桌面即可复制，
+    // 按住 Ctrl（或先按 Ctrl+X 剪切）拖拽则为移动。详见 fsearch_drag_drop.c。
+    //
+    // 【必须放在 init_listview 之后】fsearch_drag_drop_init 内部要通过
+    // fsearch_application_window_get_listview() 拿到列表控件再挂拖拽源；
+    // 之前写在 result_view_new 之后、init_listview 之前，那一刻 list_view 还是 NULL，
+    // init 静默返回 —— 拖拽源从未配置，表现为"拖拽完全无反应"（真机日志实证）。
+    fsearch_drag_drop_init(self);
     fsearch_application_window_init_overlays(self);
 
     FsearchApplication *app = FSEARCH_APPLICATION_DEFAULT;
@@ -1678,7 +1634,14 @@ fsearch_application_window_added(FsearchApplicationWindow *win, FsearchApplicati
     fsearch_window_apply_config(win);
     fsearch_list_view_set_config(win->result_view->list_view, 0, sort_order, sort_type);
 
-    // 右键“用 FSearch 搜索”启动：把限定根目录设为顶部“搜索范围”下拉框的当前项
+    // 右键"用 FSearch 搜索"启动：把限定根目录设为顶部"搜索范围"下拉框的当前项。
+    //
+    // 关于这里与 fsearch.c 的 activate 分支"唤起已存在窗口"处都消费 option_search_in：
+    // 两者互斥，靠的是 consume 语义（取走即置空），谁先执行谁消费，另一个读到 NULL。
+    //   - 已有窗口 → activate 走"唤起已有窗口"分支，本处不会被调用；
+    //   - 无窗口   → activate 新建窗口，window_added 触发，本处消费。
+    // 两处都只在 primary 进程里执行（窗口只在 primary 创建），
+    // 所以 FSEARCH_APPLICATION_DEFAULT 取到的就是 primary 单例，不存在消费错进程的问题。
     const char *opt_root = fsearch_application_consume_option_search_in(FSEARCH_APPLICATION_DEFAULT);
     if (opt_root && *opt_root) {
         set_scope(win, opt_root);
@@ -1734,6 +1697,13 @@ fsearch_application_window_selection_for_each(FsearchApplicationWindow *self,
     fsearch_database_selection_foreach(self->db, win_id, func, user_data);
 }
 
+FsearchDatabaseEntryInfo *
+fsearch_application_window_get_entry_info_for_row(FsearchApplicationWindow *self, uint32_t row_idx) {
+    g_assert(FSEARCH_IS_APPLICATION_WINDOW(self));
+
+    return fsearch_result_view_get_entry_info(self->result_view, row_idx);
+}
+
 void
 fsearch_application_window_focus_search_entry(FsearchApplicationWindow *win) {
     g_assert(FSEARCH_IS_APPLICATION_WINDOW(win));
@@ -1751,6 +1721,12 @@ void
 fsearch_application_window_perform_search(FsearchApplicationWindow *win) {
     g_assert(FSEARCH_IS_APPLICATION_WINDOW(win));
     perform_search(win);
+}
+
+char *
+fsearch_application_window_get_search_root_limiter(FsearchApplicationWindow *win) {
+    g_assert(FSEARCH_IS_APPLICATION_WINDOW(win));
+    return win->search_root_limiter;
 }
 
 FsearchStatusbar *

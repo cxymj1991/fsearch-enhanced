@@ -15,6 +15,8 @@ libfsearch_sources = [
     'fsearch.c',
     'fsearch_array.c',
     'fsearch_global_hotkey.c',
+    'fsearch_desktop_shortcut.c',
+    'fsearch_drag_drop.c',
     'fsearch_clipboard.c',
     'fsearch_config.c',
     'fsearch_database.c',
@@ -81,19 +83,21 @@ endif
 
 fsearch_deps = [
     cc.find_library('m', required: true),
+    # 0.3.2 上游要求 GLib >= 2.62（用到 g_file_query_default_handler_async 等新 API）。
+    # 统信 UOS 20（Debian 10）自带 GLib 2.58.3，无法满足；因此这里把下限调回 2.58，
+    # 并由 uos20-build/patch_legacy_glib.sh 在编译前为 0.3.2 新引入的 2.60+ API 打兼容补丁
+    # （当前补丁项：g_ptr_array_copy → 手写循环、g_clear_signal_handler → 展开为 disconnect+置零）。
+    # 在 GLib >= 2.62 的机器（如 Debian 11/UOS 20 之外的较新发行版）上同样可正常编译，无需补丁。
     dependency('gio-unix-2.0', version: '>= 2.58'),
     dependency('gtk+-3.0', version: '>= 3.22'),
     dependency('libpcre2-8', version: '>= 10.21'),
     dependency('icu-uc', version: '>= 4.4'),
+    # 全局快捷键通过 X11 XGrabKey 实现，构建期需要 libx11 开发包；
+    # 目标机的运行时库 libX11.so 由打包脚本 copy_deps 收集进 lib/，离线可用。
     dependency('x11'),
 ]
 
-# 全局快捷键通过 X11 抓取，故构建时需要 libx11 开发包（libx11-dev）。
-# 离线机的运行时库 libX11.so 由打包脚本 copy_deps 一并收集进 lib/，无需联网安装。
-
-# 系统托盘（最小化到托盘）使用 GTK 自带的 GtkStatusIcon（gtk+-3.0 已包含），
-# 无需额外依赖：左键单击=activate（唤出窗口），右键=popup-menu（含"退出"菜单）。
-# 因此不再需要 libappindicator。
+# 系统托盘使用 GTK 自带的 GtkStatusIcon（gtk+-3.0 已包含），无需 libappindicator。
 
 fsearch_enums_headers = [
     'fsearch_result.h'

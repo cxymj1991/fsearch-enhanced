@@ -1,4 +1,5 @@
 #include "fsearch_list_view.h"
+#include "fsearch_drag_drop.h"
 
 #include <cairo.h>
 #include <gdk/gdk.h>
@@ -737,6 +738,17 @@ fsearch_list_view_get_selection_modifiers(FsearchListView *view, gboolean *modif
 }
 
 static void
+fsearch_list_view_emit_row_activated(FsearchListView *view, gdouble x_view, int row_idx) {
+    // Clicks right of the last column don't hit any column, but must still activate the row
+    FsearchListViewColumn *col = fsearch_list_view_get_col_for_x_view(view, (int)x_view);
+    g_signal_emit(view,
+                  signals[FSEARCH_LIST_VIEW_SIGNAL_ROW_ACTIVATED],
+                  0,
+                  col ? col->type : -1,
+                  get_row_idx_for_sort_type(view, row_idx));
+}
+
+static void
 on_fsearch_list_view_multi_press_gesture_pressed(GtkGestureMultiPress *gesture,
                                                  gint n_press,
                                                  gdouble x_view,
@@ -804,17 +816,15 @@ on_fsearch_list_view_multi_press_gesture_pressed(GtkGestureMultiPress *gesture,
             }
             else {
                 view->cursor_idx = row_idx;
-                fsearch_list_view_selection_clear_silent(view);
-                fsearch_list_view_selection_toggle_silent(view, row_idx);
+                // 点击一个"已被选中"的行时保留当前选区，不塌缩成单选。
+                // 这样"先 Ctrl/Shift 多选，再按住其中一项拖出去"才能拖走整组；
+                // 也与文件管理器的行为一致。点击未选中的行仍然是常规的"改为单选"。
+                if (!fsearch_list_view_is_selected(view, row_idx)) {
+                    fsearch_list_view_selection_clear_silent(view);
+                    fsearch_list_view_selection_toggle_silent(view, row_idx);
+                }
                 if (view->single_click_activate) {
-                    FsearchListViewColumn *col = fsearch_list_view_get_col_for_x_view(view, x_view);
-                    if (col) {
-                        g_signal_emit(view,
-                                      signals[FSEARCH_LIST_VIEW_SIGNAL_ROW_ACTIVATED],
-                                      0,
-                                      col->type,
-                                      get_row_idx_for_sort_type(view, row_idx));
-                    }
+                    fsearch_list_view_emit_row_activated(view, x_view, row_idx);
                 }
             }
             fsearch_list_view_selection_changed(view);
@@ -822,14 +832,7 @@ on_fsearch_list_view_multi_press_gesture_pressed(GtkGestureMultiPress *gesture,
         }
 
         if (n_press == 2 && !view->single_click_activate) {
-            FsearchListViewColumn *col = fsearch_list_view_get_col_for_x_view(view, x_view);
-            if (col) {
-                g_signal_emit(view,
-                              signals[FSEARCH_LIST_VIEW_SIGNAL_ROW_ACTIVATED],
-                              0,
-                              col->type,
-                              get_row_idx_for_sort_type(view, row_idx));
-            }
+            fsearch_list_view_emit_row_activated(view, x_view, row_idx);
         }
     }
 
@@ -1113,6 +1116,22 @@ on_fsearch_list_view_bin_drag_gesture_begin(GtkGestureDrag *gesture,
                                             gdouble start_y_view,
                                             FsearchListView *view) {
     if (start_y_view > view->header_height && !view->single_click_activate) {
+        // 若本次按下发生在一行"已被选中"的结果上，则让位给拖拽源（把选中的文件拖出去），
+        // 不启动框选。否则"先多选、再按住其中一项拖走"会被框选抢走手势。
+        // 这与文件管理器（资源管理器/Nautilus）的交互一致：
+        // 从已选项上拖 = 移动文件，从未选项/空白处拖 = 框选。
+        const gint press_row = fsearch_list_view_get_row_idx_for_y_view(view, start_y_view);
+        if (is_row_idx_valid(view, press_row) && fsearch_list_view_is_selected(view, press_row)) {
+            gtk_gesture_set_state(GTK_GESTURE(gesture), GTK_EVENT_SEQUENCE_DENIED);
+            // 主动发起文件拖拽：不依赖 gtk_drag_source_set 的内置按压检测
+            //（实测该检测在手势体系下会被拦截，导致拖拽完全无反应）。
+            // 此时已越过手势的移动阈值，正是发起拖拽的正确时机；
+            // 普通点击不会走到这里（不越过阈值就不会触发 drag-begin）。
+            fsearch_drag_drop_log_branch(press_row, start_x_view, start_y_view);
+            fsearch_drag_drop_begin_from_view(GTK_WIDGET(view), start_x_view, start_y_view);
+            return;
+        }
+
         if (!gtk_widget_has_focus(GTK_WIDGET(view))) {
             gtk_widget_grab_focus(GTK_WIDGET(view));
         }

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fsearch 0.1beta4.58-6c306-dirty\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 17:26+0200\n"
+"POT-Creation-Date: 2026-09-20 13:29+0200\n"
 "PO-Revision-Date: 2026-04-14 11:18+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/fsearch/"
@@ -144,102 +144,186 @@ msgid "Christian Boxdörfer"
 msgstr "Christian Boxdörfer"
 
 #: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:89
+msgid ""
+"Fix crash when the filesystem monitor received events for unknown watches "
+"(e.g. after aborted scans or removed folders)"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:90
+msgid ""
+"Fix possible crash and removal of unrelated entries when folders are removed "
+"from the database"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:91
+msgid "Fix implicit AND placement in search queries (#742)"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:92
+msgid "Fix wrong icon size when the scale factor changes (#718)"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:93
+msgid "Fix icons not refreshing after a theme change"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:94
+#, fuzzy
+msgid "Fix broken single click to open"
+msgstr "לחיצה בודדת לפתיחה"
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:95
+msgid "Fix row activation not working outside of the columns"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:96
+msgid "Fix new window action not working"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:97
+msgid "Fix blocking UI when opening files in some situations"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:98
+msgid "Fix memory leak when building the file list for file actions"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:99
+msgid "Try to guess the content type of a file if querying it failed"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:100
+msgid "Only show the welcome dialog when upgrading from versions before 0.3"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:101
+msgid ""
+"Improve database update performance (faster sorting, insertion and removal "
+"of entries)"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:108
+msgid "Fix blocking UI when loading icons"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:109
+msgid "Fix option 'action after file open' not getting saved"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:110
+msgid "Remove duplicate language to fix build on newer gettext versions"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:117
 msgid "DB rewrite"
 msgstr "שכתוב מסד נתונים"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:90
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:118
 msgid "DB: Add support for filesystem monitoring"
 msgstr "מסד נתונים: הוספת תמיכה במעקב אחר מערכת קבצים"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:91
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:119
 msgid ""
 "DB: Allow files and folders to be excluded based on fixed patterns, "
 "wildcards or regular expressions"
 msgstr ""
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:92
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:120
 msgid ""
 "DB: Allow included folders to be scheduled and scanned after launch "
 "independently"
 msgstr ""
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:93
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:121
 msgid "DB: Make rescanning more efficient"
 msgstr ""
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:94
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:122
 msgid "DB: Store database config in DB file"
 msgstr "מסד נתונים: אחסון הגדרות מסד נתונים בקובץ מסד נתונים"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:95
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:123
 msgid "DB: Add checksum to DB file"
 msgstr "מסד נתונים: הוספת סיכום ביקורת לקובץ מסד נתונים"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:96
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:124
 msgid "Make icon and file info gathering asynchronous (no UI blocking)"
 msgstr ""
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:103
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:125
+msgid "Reduce memory usage"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:126
+msgid "Add contextual help for all preferences"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:127
+#, fuzzy
+msgid "Numerous bug fixes and stability and performance improvements"
+msgstr "וכמות ענקית של תקלות, עדכוני תרגומים ושיפורים מזעריים"
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:134
 msgid "New search engine"
 msgstr "מנוע חיפוש חדש"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:104
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:135
 msgid "Greatly improved highlighting of search terms"
 msgstr "שיפור משמעותי בהדגשת ביטויי החיפוש"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:105
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:136
 msgid "Custom filters"
 msgstr "מסננים משלך"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:106
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:137
 msgid "Improved sort performance"
 msgstr "ביצועי הסידור השתפרו"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:107
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:138
 msgid "Improved scroll performance"
 msgstr "ביצועי הגלילה השתפרו"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:108
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:139
 msgid "Remember file selection after a database update"
 msgstr "לזכור את בחירת הקבצים אחרי עדכון מסד נתונים"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:109
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:140
 msgid "Automatically scroll the result list in rubberband selection mode"
 msgstr "לגלול את רשימת התוצאות אוטומטית במצב בחירה גומייה"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:110
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:141
 msgid "Invert selection with rubber band when 'Ctrl' is pressed"
 msgstr "היפוך הבחירה עם גומייה בעת לחיצה על ‚Ctrl’"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:111
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:142
 msgid "Focus search entry when the main window gets activated"
 msgstr "התמקדות ברשומת החיפה כאשר החלון הראשי מופעל"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:112
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:143
 msgid "Add filter for applications (i.e. .desktop files)"
 msgstr "הוספת מסנן ליישומים (למשל: קובצי desktop)"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:113
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:144
 msgid ""
 "Add option to launch applications directly instead of opening the .desktop "
 "files"
 msgstr "הוספת אפשרות להפעיל יישומים ישירות במקום לפתוח קובצי ‎.desktop"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:114
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:145
 msgid "Show application icons for .desktop files"
 msgstr "הצגת סמלי יישומים לקובצי ‎.desktop"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:115
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:146
 msgid "Add .odp and .ods files to document filter"
 msgstr "הוספת קובצי ‎.odp ו־‎.ods למסנן המסמכים"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:116
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:147
 msgid ""
 "'Open with' menu now only shows applications which can handle the selected "
 "files"
 msgstr "התפריט ‚פתיחה עם’ מציג מעתה רק יישומים שיכולים לטפל בקבצים הנבחרים"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:117
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:148
 msgid ""
 "Improved opening of multiple files with the same type (they get now passed "
 "as a list to applications, instead of one by one)"
@@ -247,38 +331,38 @@ msgstr ""
 "פתיחה משופרת של מגוון קבצים מאותו הסוג (הם מועברים כרשימה ליישומים במקום אחד "
 "אחד)"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:118
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:149
 msgid "Better support for opening files in sandboxed mode"
 msgstr "תמיכה משופרת בפתיחת קבצים במצב התנסות"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:119
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:150
 msgid ""
 "Add menu items with links to the issue tracker, forum and donation pages"
 msgstr "הוספת פריטי תפריטים עם קישורים לעמודי עוקב התקלות, הפורום והתרומה"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:120
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:151
 msgid "Improve support for non-Linux systems"
 msgstr "שיפור התמיכה במערכות שאינן לינוקס"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:121
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:152
 msgid ""
 "Add option to exit FSearch when Escape is pressed instead of minimizing the "
 "window"
 msgstr "הוספת אפשרות לצאת מ־FSearch בלחיצה על Escape במקום למזער את החלון"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:122
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:153
 msgid "Exclude '/proc' and '/sys' by default"
 msgstr "להחריג את ‚‎/proc’ ו־‚‎/sys’ כברירת מחדל"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:123
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:154
 msgid "Open context menu when 'Menu' key or 'Shift + F10' are pressed"
 msgstr "פתיחת תפריט הקשר בלחיצה על מקש ‚תפריט’ או ‚Shift + F10’"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:124
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:155
 msgid "and tons of bug fixes, translation updates and smaller improvements"
 msgstr "וכמות ענקית של תקלות, עדכוני תרגומים ושיפורים מזעריים"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:130
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:161
 msgid "Initial release."
 msgstr "מהדורה ראשונית."
 
@@ -290,28 +374,33 @@ msgstr "Yaron Shahrabani <sh.yaron@gmail.com>"
 msgid "A search utility focusing on performance and advanced features"
 msgstr "כלי חיפוש ממוקד ביצועים ותכונות מתקדמות"
 
-#: src/fsearch.c:766
+#: src/fsearch.c:330
+#, fuzzy
+msgid "Saving database and config…"
+msgstr "מסד הנתונים נטען…"
+
+#: src/fsearch.c:807
 msgid "Open a new application window"
 msgstr "פתיחת חלון יישום חדש"
 
-#: src/fsearch.c:767
+#: src/fsearch.c:808
 #, fuzzy
 msgid "Minimize the application window"
 msgstr "פתיחת חלון יישום חדש"
 
-#: src/fsearch.c:768
+#: src/fsearch.c:809
 msgid "Show the application preferences"
 msgstr "הצגת העדפות היישום"
 
-#: src/fsearch.c:769
+#: src/fsearch.c:810
 msgid "Set the search pattern"
 msgstr "הגדרת תבנית החיפוש"
 
-#: src/fsearch.c:770
+#: src/fsearch.c:811
 msgid "Update the database and exit"
 msgstr "עדכון מסד הנתונים ויציאה"
 
-#: src/fsearch.c:771
+#: src/fsearch.c:812
 msgid "Print version information and exit"
 msgstr "הצגת מידע על הגרסה ויציאה"
 
@@ -389,8 +478,8 @@ msgstr "פעיל"
 msgid "Pattern"
 msgstr ""
 
-#: src/fsearch_database_preferences_widget.c:694 src/fsearch_window.c:773
-#: src/menus.ui:275
+#: src/fsearch_database_preferences_widget.c:694 src/fsearch_window.c:769
+#: src/menus.ui:276
 msgid "Type"
 msgstr "סוג"
 
@@ -403,8 +492,8 @@ msgstr "התאמת רישיות"
 msgid "Applies To"
 msgstr ""
 
-#: src/fsearch_database_preferences_widget.c:864 src/fsearch_window.c:759
-#: src/menus.ui:219 src/menus.ui:267
+#: src/fsearch_database_preferences_widget.c:864 src/fsearch_window.c:755
+#: src/menus.ui:220 src/menus.ui:268
 msgid "Path"
 msgstr "נתיב"
 
@@ -479,7 +568,6 @@ msgstr ""
 
 #: src/fsearch_database_preferences_widget.ui:512
 #, fuzzy
-#| msgid "Restore default filters"
 msgid "Restore default exclude list"
 msgstr "שחזור מסנני ברירת המחדל"
 
@@ -491,56 +579,57 @@ msgstr "להחריג קבצים ותיקיות מוסתרים"
 msgid "Exclude"
 msgstr "החרגה"
 
-#: src/fsearch_file_utils.c:161
+#: src/fsearch_file_utils.c:163
 msgctxt "Will be followed by the path of the file."
 msgid "Error when removing file"
 msgstr "שגיאה בהסרת קובץ"
 
-#: src/fsearch_file_utils.c:163
+#: src/fsearch_file_utils.c:165
 msgid "Failed to get path"
 msgstr "קבלת הנתיב נכשלה"
 
-#: src/fsearch_file_utils.c:277
+#: src/fsearch_file_utils.c:269
 msgctxt "Will be followed by the file path."
 msgid "Error when getting information from file"
 msgstr "שגיאה בקבלת מידע מקובץ"
 
-#: src/fsearch_file_utils.c:279
+#: src/fsearch_file_utils.c:271
 msgid "Failed to get application information"
 msgstr "קבלת פרטי היישום נכשלה"
 
-#: src/fsearch_file_utils.c:294
-msgctxt "Will be followed by the content type string."
-msgid "Error when getting information for content type"
-msgstr "שגיאה בקבלת מידע על סוג התוכן"
+#: src/fsearch_file_utils.c:384 src/fsearch_file_utils.c:515
+#, fuzzy
+msgctxt "Will be followed by the file path."
+msgid "Error when opening file"
+msgstr "שגיאה בפתיחת התיקייה"
 
-#: src/fsearch_file_utils.c:296
+#: src/fsearch_file_utils.c:386 src/fsearch_file_utils.c:517
 msgid "No default application registered"
 msgstr "לא נרשם יישומון ברירת מחדל"
 
-#: src/fsearch_file_utils.c:524
+#: src/fsearch_file_utils.c:536
 msgctxt "Will be followed by the path of the folder."
 msgid "Error when opening parent folder"
 msgstr "שגיאה בפתיחת תיקיית ההורה"
 
-#: src/fsearch_file_utils.c:526
+#: src/fsearch_file_utils.c:538
 msgid "Failed to get parent path"
 msgstr "שגיאה בקבלת נתיב ההורה"
 
-#: src/fsearch_file_utils.c:530
+#: src/fsearch_file_utils.c:542
 msgctxt "Will be followed by the path of the folder."
 msgid "Error while opening folder"
 msgstr "שגיאה בפתיחת התיקייה"
 
-#: src/fsearch_file_utils.c:533
+#: src/fsearch_file_utils.c:545
 msgid "Failed to build open command"
 msgstr "בניית פקודת הפתיחה נכשלה"
 
-#: src/fsearch_file_utils.c:589
+#: src/fsearch_file_utils.c:601
 msgid "Folder"
 msgstr "תיקייה"
 
-#: src/fsearch_file_utils.c:595
+#: src/fsearch_file_utils.c:607
 msgid "Unknown Type"
 msgstr "סוג לא ידוע"
 
@@ -630,8 +719,8 @@ msgstr ""
 msgid "Add filter"
 msgstr "הוספת מסנן"
 
-#: src/fsearch_filter_preferences_widget.c:315 src/fsearch_window.c:752
-#: src/menus.ui:215 src/menus.ui:263
+#: src/fsearch_filter_preferences_widget.c:315 src/fsearch_window.c:748
+#: src/menus.ui:216 src/menus.ui:264
 msgid "Name"
 msgstr "שם"
 
@@ -711,7 +800,7 @@ msgstr "כדאי לנסות חיפוש אחר"
 msgid "Sorting results…"
 msgstr "התוצאות ממוינות…"
 
-#: src/fsearch_preferences.ui:7 src/fsearch_window.ui:251 src/menus.ui:84
+#: src/fsearch_preferences.ui:7 src/fsearch_window.ui:251 src/menus.ui:85
 msgid "Preferences"
 msgstr "העדפות"
 
@@ -847,7 +936,7 @@ msgstr "מסנן:"
 msgid "Search"
 msgstr "חיפוש"
 
-#: src/fsearch_preferences.ui:854
+#: src/fsearch_preferences.ui:855
 msgid ""
 "<b>Enable dark theme:</b>\n"
 "\n"
@@ -865,7 +954,7 @@ msgstr ""
 "נא לשים לב שלא כל ערכות העיצוב של המערכת מספקות הגוון כהה, לכן הפעלת ההגדרה "
 "הזאת עשויה לא להשפיע כלל."
 
-#: src/fsearch_preferences.ui:872
+#: src/fsearch_preferences.ui:873
 msgid ""
 "<b>Enable client-side decorations:</b>\n"
 "\n"
@@ -884,7 +973,7 @@ msgstr ""
 "אם מושבת, התפריט הראשי מוצג כסרגל תפריטים עם רשומת חיפוש מתחתיו.\n"
 "מדמה פריסת מנשק משתמש מסורתית יותר ודורשת מעט יותר מקום."
 
-#: src/fsearch_preferences.ui:892
+#: src/fsearch_preferences.ui:893
 msgid ""
 "<b>Use binary units instead of decimal units:</b>\n"
 "\n"
@@ -904,7 +993,7 @@ msgstr ""
 "\t• <b>יחידות עשרוניות:</b> מתייחס לקידומות עשרוניות לפי SI <i>(כלומר 1 ק״ב "
 "= 1000 בתים)</i>"
 
-#: src/fsearch_preferences.ui:912
+#: src/fsearch_preferences.ui:913
 msgid ""
 "<b>Remember window size:</b>\n"
 "\n"
@@ -921,7 +1010,7 @@ msgstr ""
 "\n"
 "נא לשים לב שחלק ממנהלי החלונות מתעלמים מהבקשה הזאת וכופים גודל שונה על החלון."
 
-#: src/fsearch_preferences.ui:931
+#: src/fsearch_preferences.ui:932
 #, fuzzy
 msgid ""
 "<b>Behaviour after successfully opening a file:</b>\n"
@@ -949,7 +1038,7 @@ msgstr ""
 "\t• <b>קיצורי מקלדת או רשומות בתפריט</b> ו/או\n"
 "\t• <b>לחיצה עם העכבר</b>"
 
-#: src/fsearch_preferences.ui:955
+#: src/fsearch_preferences.ui:956
 msgid ""
 "<b>Show highlighted search terms:</b>\n"
 "\n"
@@ -974,7 +1063,7 @@ msgstr ""
 "עובד גם עם ביטויים רגולריים וביטויים עם תווי הכללה שמתחילים או מסתיימים "
 "בכוכבית. "
 
-#: src/fsearch_preferences.ui:977
+#: src/fsearch_preferences.ui:978
 msgid ""
 "<b>Show tooltips:</b>\n"
 "\n"
@@ -986,7 +1075,7 @@ msgstr ""
 "אם האפשרות מופעלת, תצוגת התוצאות תציג את הנתיב המלא של הקובץ/נתיב בחלון עצה "
 "קטן."
 
-#: src/fsearch_preferences.ui:994
+#: src/fsearch_preferences.ui:995
 msgid ""
 "<b>Show icons in name column:</b>\n"
 "\n"
@@ -996,7 +1085,7 @@ msgstr ""
 "\n"
 "אם האפשרות פעילה, סמלי קובץ/תיקייה יוצגו בעמודת השם."
 
-#: src/fsearch_preferences.ui:1011
+#: src/fsearch_preferences.ui:1012
 msgid ""
 "<b>Remember column configuration:</b>\n"
 "\n"
@@ -1009,7 +1098,7 @@ msgstr ""
 "אם פעילה, הגדרת העמודות של תצוגת התוצאות מההפעלה הקודמת תשוחזר עם פתיחת חלון "
 "FSearch. כולל את הגודל ומצב התצוגה של כל העמודות."
 
-#: src/fsearch_preferences.ui:1028
+#: src/fsearch_preferences.ui:1029
 msgid ""
 "<b>Remember sort order:</b>\n"
 "\n"
@@ -1021,7 +1110,7 @@ msgstr ""
 "אם האפשרות פעילה, סדר המיון של תצוגת התוצאות מההפעלה הקודמת ישוחזר עם פתיחת "
 "החלון של FSearch."
 
-#: src/fsearch_preferences.ui:1045
+#: src/fsearch_preferences.ui:1046
 msgid ""
 "<b>Open path with double click in path column:</b>\n"
 "\n"
@@ -1031,7 +1120,7 @@ msgstr ""
 "\n"
 "אם האפשרות פעילה, לחיצה כפולה על עמודת הנתיב תפתח את הנתיב הנבחר."
 
-#: src/fsearch_preferences.ui:1062
+#: src/fsearch_preferences.ui:1063
 msgid ""
 "<b>Single click to open:</b>\n"
 "\n"
@@ -1045,7 +1134,7 @@ msgstr ""
 "בקובץ/תיקייה כשהאפשרות הזאת פעילה, יש להחזיק את <i>Ctrl</i> בזמן הלחיצה על "
 "הקובץ/תיקייה."
 
-#: src/fsearch_preferences.ui:1079
+#: src/fsearch_preferences.ui:1080
 msgid ""
 "<b>Show database indexing status:</b>\n"
 "\n"
@@ -1056,7 +1145,7 @@ msgstr ""
 "\n"
 "אם האפשרות פעילה, הנתיב שכרגע מסודר באינדקס מוצג בשורת המצב."
 
-#: src/fsearch_preferences.ui:1096
+#: src/fsearch_preferences.ui:1097
 msgid ""
 "<b>Show warning dialogs:</b>\n"
 "\n"
@@ -1067,7 +1156,7 @@ msgstr ""
 "\n"
 "אם האפשרות פעילה, חלונית אזהרה תוצג כאשר פתיחה של קובץ או תיקייה נכשלה."
 
-#: src/fsearch_preferences.ui:1113
+#: src/fsearch_preferences.ui:1114
 msgid ""
 "<b>Search in path when query contains path separators:</b>\n"
 "\n"
@@ -1079,7 +1168,7 @@ msgstr ""
 "אם האפשרות פעילה, ביטויי החיפוש שמכילים מפרידי נתיב (למשל: „/”) ייבדקו אל "
 "מול הנתיב המלא של קובץ או תיקייה."
 
-#: src/fsearch_preferences.ui:1130
+#: src/fsearch_preferences.ui:1131
 msgid ""
 "<b>Match case when query contains at least one upper case character:</b>\n"
 "\n"
@@ -1093,7 +1182,7 @@ msgstr ""
 "רישיות. כלומר שביטויים כמו <i>Foo</i> ימצאו את <i>FooBar.txt</i> אך לא את "
 "<i>foobar.txt</i>."
 
-#: src/fsearch_preferences.ui:1147
+#: src/fsearch_preferences.ui:1148
 msgid ""
 "<b>Hide results when search is empty:</b>\n"
 "\n"
@@ -1108,7 +1197,7 @@ msgstr ""
 "\n"
 "אם האפשרות מושבתת, כל הקבצים והתיקיות יוצגו כאשר רשומת החיפוש ריקה."
 
-#: src/fsearch_preferences.ui:1166
+#: src/fsearch_preferences.ui:1167
 msgid ""
 "<b>Search as you type:</b>\n"
 "\n"
@@ -1124,7 +1213,7 @@ msgstr ""
 "אם האפשרות מושבתת, החיפוש יעודכן רק בלחיצה על <i>Enter</i> או על כפתור "
 "החיפוש. "
 
-#: src/fsearch_preferences.ui:1185
+#: src/fsearch_preferences.ui:1186
 msgid ""
 "<b>Update database on start:</b>\n"
 "\n"
@@ -1135,7 +1224,7 @@ msgstr ""
 "\n"
 "אם פעילה, מסד הנתונים יעודכן ברקע אוטומטית עם הפעלת FSearch."
 
-#: src/fsearch_preferences.ui:1202
+#: src/fsearch_preferences.ui:1203
 msgid ""
 "<b>Included folders:</b>\n"
 "\n"
@@ -1156,7 +1245,7 @@ msgstr ""
 "\t• <b>מערכת קבצים יחידה:</b> אם פעיל, FSearch לא יחצה גבולות בין מערכות "
 "קבצים לתיקייה הזאת"
 
-#: src/fsearch_preferences.ui:1223
+#: src/fsearch_preferences.ui:1224
 msgid ""
 "<b>Add folder to database:</b>\n"
 "\n"
@@ -1167,7 +1256,7 @@ msgstr ""
 "\n"
 "כפתור זה פותח חלונית בה ניתן לבחור תיקייה להכללה במסד הנתונים לחיפוש."
 
-#: src/fsearch_preferences.ui:1240
+#: src/fsearch_preferences.ui:1241
 msgid ""
 "<b>Add a specific path:</b>\n"
 "\n"
@@ -1176,7 +1265,7 @@ msgid ""
 "directly without browsing for it."
 msgstr ""
 
-#: src/fsearch_preferences.ui:1257
+#: src/fsearch_preferences.ui:1258
 msgid ""
 "<b>Remove selected row:</b>\n"
 "\n"
@@ -1186,7 +1275,7 @@ msgstr ""
 "\n"
 "מסירה את התיקייה הנבחרת מרשימת התיקיות המוכללות."
 
-#: src/fsearch_preferences.ui:1274
+#: src/fsearch_preferences.ui:1275
 msgid ""
 "<b>Attempt to monitor:</b>\n"
 "\n"
@@ -1198,7 +1287,7 @@ msgid ""
 "files the system may run out of resources to watch them all."
 msgstr ""
 
-#: src/fsearch_preferences.ui:1293
+#: src/fsearch_preferences.ui:1294
 msgid ""
 "<b>Scan after launch:</b>\n"
 "\n"
@@ -1206,7 +1295,7 @@ msgid ""
 "database reflects any changes made while FSearch wasn't running."
 msgstr ""
 
-#: src/fsearch_preferences.ui:1310
+#: src/fsearch_preferences.ui:1311
 msgid ""
 "<b>Stay on one file system:</b>\n"
 "\n"
@@ -1215,7 +1304,7 @@ msgid ""
 "shares) are skipped."
 msgstr ""
 
-#: src/fsearch_preferences.ui:1327
+#: src/fsearch_preferences.ui:1328
 msgid ""
 "<b>Rescan every:</b>\n"
 "\n"
@@ -1226,7 +1315,7 @@ msgid ""
 "changes."
 msgstr ""
 
-#: src/fsearch_preferences.ui:1346
+#: src/fsearch_preferences.ui:1347
 msgid ""
 "<b>Exclude rules:</b>\n"
 "\n"
@@ -1246,7 +1335,7 @@ msgid ""
 "or both."
 msgstr ""
 
-#: src/fsearch_preferences.ui:1369
+#: src/fsearch_preferences.ui:1370
 msgid ""
 "<b>Add exclude rule:</b>\n"
 "\n"
@@ -1254,12 +1343,8 @@ msgid ""
 "Applies To columns to control what gets excluded from the database."
 msgstr ""
 
-#: src/fsearch_preferences.ui:1386
+#: src/fsearch_preferences.ui:1387
 #, fuzzy
-#| msgid ""
-#| "<b>Remove selected row:</b>\n"
-#| "\n"
-#| "This removes the selected folder from the list of excluded folders."
 msgid ""
 "<b>Remove selected row:</b>\n"
 "\n"
@@ -1269,14 +1354,8 @@ msgstr ""
 "\n"
 "מסירה את התיקייה הנבחרת מרשימת התיקיות המוחרגות."
 
-#: src/fsearch_preferences.ui:1403
+#: src/fsearch_preferences.ui:1404
 #, fuzzy
-#| msgid ""
-#| "<b>Restore default filters:</b>\n"
-#| "\n"
-#| "This button restores the default filter configuration.\n"
-#| "\n"
-#| "⚠ All filters which were created or edited by the user will be lost! ⚠"
 msgid ""
 "<b>Restore default exclude rules:</b>\n"
 "\n"
@@ -1290,7 +1369,7 @@ msgstr ""
 "\n"
 "⚠ כל המסננים שנוצרו או נערכו על ידי המשתמש יאבדו לעד! ⚠"
 
-#: src/fsearch_preferences.ui:1422
+#: src/fsearch_preferences.ui:1423
 msgid ""
 "<b>Exclude files and folders from database:</b>\n"
 "\n"
@@ -1305,7 +1384,7 @@ msgstr ""
 "למשל <i>‎.git;.cache;*.swp</i> יחריגו את כל הקבצים והתיקיות שנקראים או "
 "<i>‎.git</i> או <i>‎.cache</i> או מסתיימים ב־<i>‎.swp</i>."
 
-#: src/fsearch_preferences.ui:1439
+#: src/fsearch_preferences.ui:1440
 msgid ""
 "<b>Exclude hidden files and folders:</b>\n"
 "\n"
@@ -1317,11 +1396,11 @@ msgstr ""
 "אם האפשרות פעילה, קבצים ותיקיות שהוסתרו יוחרגו ממסד הנתונים <i>(דהיינו כל "
 "הקבצים או התיקיות שמתחילים בתו נקודה)</i>."
 
-#: src/fsearch_preferences.ui:1456
+#: src/fsearch_preferences.ui:1457
 msgid "Focus a setting to get a detailed description of what it does."
 msgstr "אפשר להתמקד בהגדרה כלשהי כדי לקבל תיאור על אופן פעולתה."
 
-#: src/fsearch_preferences.ui:1469
+#: src/fsearch_preferences.ui:1470
 msgid ""
 "<b>Periodically update database at a specific time interval:</b>\n"
 "\n"
@@ -1344,7 +1423,7 @@ msgstr ""
 "\n"
 "<i><tt>fsearch --update-database</tt></i>"
 
-#: src/fsearch_preferences.ui:1490
+#: src/fsearch_preferences.ui:1491
 msgid ""
 "<b>Launch desktop files:</b>\n"
 "\n"
@@ -1359,7 +1438,7 @@ msgstr ""
 "הזה. כך FSearch יכול להתנהג כמו משגר יישומים. אחרת, קובץ ה־‎<i>.desktop</i> "
 "ייפתח עם המטפל בסוג הקבצים האלה כברירת מחדל, בדרך כלל זה עורך טקסט."
 
-#: src/fsearch_preferences.ui:1507
+#: src/fsearch_preferences.ui:1508
 msgid ""
 "<b>Filters:</b>\n"
 "\n"
@@ -1379,7 +1458,7 @@ msgstr ""
 "דרישה\n"
 "\t• <b>שאילתה:</b> ביטוי החיפוש שלפיו יסונן מסד הנתונים"
 
-#: src/fsearch_preferences.ui:1528
+#: src/fsearch_preferences.ui:1529
 msgid ""
 "<b>Add a new filter:</b>\n"
 "\n"
@@ -1389,7 +1468,7 @@ msgstr ""
 "\n"
 "כפתור זה פותח חלונית בה ניתן לערוך מסנן חדש."
 
-#: src/fsearch_preferences.ui:1545
+#: src/fsearch_preferences.ui:1546
 msgid ""
 "<b>Remove selected filter:</b>\n"
 "\n"
@@ -1399,7 +1478,7 @@ msgstr ""
 "\n"
 "כפתור זה מסיר את המסנן הנבחר."
 
-#: src/fsearch_preferences.ui:1562
+#: src/fsearch_preferences.ui:1563
 msgid ""
 "<b>Edit selected filter:</b>\n"
 "\n"
@@ -1409,7 +1488,7 @@ msgstr ""
 "\n"
 "כפתור זה פותח חלונית בה ניתן לערוך את המסנן הנבחר."
 
-#: src/fsearch_preferences.ui:1579
+#: src/fsearch_preferences.ui:1580
 msgid ""
 "<b>Restore default filters:</b>\n"
 "\n"
@@ -1423,7 +1502,7 @@ msgstr ""
 "\n"
 "⚠ כל המסננים שנוצרו או נערכו על ידי המשתמש יאבדו לעד! ⚠"
 
-#: src/fsearch_preferences.ui:1598
+#: src/fsearch_preferences.ui:1599
 msgid ""
 "<b>Exit on Escape:</b>\n"
 "\n"
@@ -1435,8 +1514,8 @@ msgstr ""
 "אם האפשרות פעילה, FSearch ייסגר עם לחיצה על כפתור ה־Escape במקום רק מזעור "
 "החלון."
 
-#: src/fsearch_preferences.ui:1617 src/fsearch_window.ui:290
-#: src/fsearch_window.ui:415 src/menus.ui:150 src/menus.ui:156
+#: src/fsearch_preferences.ui:1618 src/fsearch_window.ui:290
+#: src/fsearch_window.ui:415 src/menus.ui:151 src/menus.ui:157
 msgid "Help"
 msgstr "עזרה"
 
@@ -1444,7 +1523,7 @@ msgstr "עזרה"
 msgid "Database"
 msgstr "מסד נתונים"
 
-#: src/fsearch_result_view.c:381
+#: src/fsearch_result_view.c:491
 msgid "Invalid row data"
 msgstr "נתוני שורה שגויים"
 
@@ -1596,19 +1675,19 @@ msgid ""
 "configured to match against either the basename or the full absolute path."
 msgstr ""
 
-#: src/fsearch_window.c:766 src/menus.ui:279
+#: src/fsearch_window.c:762 src/menus.ui:280
 msgid "Size"
 msgstr "גודל"
 
-#: src/fsearch_window.c:780 src/menus.ui:271
+#: src/fsearch_window.c:776 src/menus.ui:272
 msgid "Extension"
 msgstr "הרחבה"
 
-#: src/fsearch_window.c:787 src/menus.ui:283
+#: src/fsearch_window.c:783 src/menus.ui:284
 msgid "Date Modified"
 msgstr "מועד השינוי"
 
-#: src/fsearch_window.c:801
+#: src/fsearch_window.c:797
 msgid ""
 "Sorting by <b>Type</b> can take a few seconds with many results.\n"
 "\n"
@@ -1627,59 +1706,59 @@ msgstr "חלון חדש"
 msgid "Update database"
 msgstr "עדכון מסד נתונים"
 
-#: src/fsearch_window.ui:144 src/menus.ui:112
+#: src/fsearch_window.ui:144 src/menus.ui:113
 msgid "Search in Path"
 msgstr "חיפוש בנתיב"
 
-#: src/fsearch_window.ui:158 src/menus.ui:116
+#: src/fsearch_window.ui:158 src/menus.ui:117
 msgid "Match Case"
 msgstr "התאמת רישיות"
 
-#: src/fsearch_window.ui:172 src/menus.ui:120
+#: src/fsearch_window.ui:172 src/menus.ui:121
 msgid "Enable RegEx"
 msgstr "הפעלת ביטוי רגולרי"
 
-#: src/fsearch_window.ui:197 src/menus.ui:95
+#: src/fsearch_window.ui:197 src/menus.ui:96
 msgid "Show Statusbar"
 msgstr "הצגת שורת מצב"
 
-#: src/fsearch_window.ui:211 src/menus.ui:99
+#: src/fsearch_window.ui:211 src/menus.ui:100
 msgid "Show Filter"
 msgstr "הצגת מסנן"
 
-#: src/fsearch_window.ui:225 src/menus.ui:103
+#: src/fsearch_window.ui:225 src/menus.ui:104
 msgid "Show Search Button"
 msgstr "הצגת כפתור חיפוש"
 
-#: src/fsearch_window.ui:275 src/fsearch_window.ui:356 src/menus.ui:129
+#: src/fsearch_window.ui:275 src/fsearch_window.ui:356 src/menus.ui:130
 msgid "FSearch Online"
 msgstr "FSearch מקוון"
 
-#: src/fsearch_window.ui:304 src/menus.ui:161
+#: src/fsearch_window.ui:304 src/menus.ui:162
 msgid "About"
 msgstr "על אודות"
 
-#: src/fsearch_window.ui:329 src/menus.ui:47
+#: src/fsearch_window.ui:329 src/menus.ui:48
 msgid "Quit"
 msgstr "יציאה"
 
-#: src/fsearch_window.ui:372 src/fsearch_window.ui:443 src/menus.ui:131
+#: src/fsearch_window.ui:372 src/fsearch_window.ui:443 src/menus.ui:132
 msgid "Donate"
 msgstr "תרומה"
 
-#: src/fsearch_window.ui:387 src/menus.ui:142
+#: src/fsearch_window.ui:387 src/menus.ui:143
 msgid "Forum"
 msgstr "פורום"
 
-#: src/fsearch_window.ui:401 src/menus.ui:146
+#: src/fsearch_window.ui:401 src/menus.ui:147
 msgid "Bug Reports and Feature Requests"
 msgstr "דיווחי תקלות ובקשות פיתוח"
 
-#: src/fsearch_window.ui:460 src/menus.ui:133
+#: src/fsearch_window.ui:460 src/menus.ui:134
 msgid "GitHub Sponsors"
 msgstr "מממנים דרך GitHub"
 
-#: src/fsearch_window.ui:474 src/menus.ui:137
+#: src/fsearch_window.ui:474 src/menus.ui:138
 msgid "PayPal"
 msgstr "PayPal"
 
@@ -1717,8 +1796,8 @@ msgstr "הקבצים נמחקים…"
 msgid "Moving files to trash…"
 msgstr "קבצים מועברים לאשפה…"
 
-#: src/fsearch_window_actions.c:238 src/fsearch_window_actions.c:533
-#: src/fsearch_window_actions.c:580
+#: src/fsearch_window_actions.c:238 src/fsearch_window_actions.c:538
+#: src/fsearch_window_actions.c:592
 msgid "Something went wrong."
 msgstr "משהו השתבש."
 
@@ -1741,81 +1820,85 @@ msgstr "_קובץ"
 msgid "New Window"
 msgstr "חלון חדש"
 
-#: src/menus.ui:16 src/menus.ui:171
+#: src/menus.ui:17 src/menus.ui:172
 msgid "_Open"
 msgstr "_פתיחה"
 
-#: src/menus.ui:21
+#: src/menus.ui:22
 msgid "Open Folder"
 msgstr "פתיחת תיקייה"
 
-#: src/menus.ui:29
+#: src/menus.ui:30
 msgid "Update Database"
 msgstr "עדכון מסד הנתונים"
 
-#: src/menus.ui:35
+#: src/menus.ui:36
 msgid "Cancel Update"
 msgstr "ביטול עדכון"
 
-#: src/menus.ui:42
+#: src/menus.ui:43
 msgid "Close Window"
 msgstr "סגירת החלון"
 
-#: src/menus.ui:54
+#: src/menus.ui:55
 msgid "_Edit"
 msgstr "_עריכה"
 
-#: src/menus.ui:57 src/menus.ui:207
+#: src/menus.ui:58 src/menus.ui:208
 msgid "_Copy"
 msgstr "ה_עתקה"
 
-#: src/menus.ui:62 src/menus.ui:228
+#: src/menus.ui:63 src/menus.ui:229
 msgid "Cu_t"
 msgstr "ג_זירה"
 
-#: src/menus.ui:69
+#: src/menus.ui:70
 msgid "Select All"
 msgstr "בחירה בהכול"
 
-#: src/menus.ui:74
+#: src/menus.ui:75
 msgid "Deselect All"
 msgstr "ביטול בחירה"
 
-#: src/menus.ui:78
+#: src/menus.ui:79
 msgid "Invert Selection"
 msgstr "היפוך בחירה"
 
-#: src/menus.ui:92
+#: src/menus.ui:93
 msgid "_View"
 msgstr "ת_צוגה"
 
-#: src/menus.ui:109
+#: src/menus.ui:110
 msgid "_Search"
 msgstr "_חיפוש"
 
-#: src/menus.ui:126
+#: src/menus.ui:127
 msgid "_Help"
 msgstr "ע_זרה"
 
-#: src/menus.ui:177
+#: src/menus.ui:178
 msgid "Open _With"
 msgstr "פתיחה _עם"
 
-#: src/menus.ui:191
+#: src/menus.ui:192
 msgid "_Open Folder"
 msgstr "פתיחת _תיקייה"
 
-#: src/menus.ui:213
+#: src/menus.ui:214
 msgid "Copy as Text"
 msgstr "העתקה כטקסט"
 
-#: src/menus.ui:223
+#: src/menus.ui:224
 msgid "Path + Name"
 msgstr "נתיב + שם"
 
-#: src/menus.ui:236
+#: src/menus.ui:237
 msgid "Move to _Trash"
 msgstr "העברה ל_אשפה"
+
+#~ msgctxt "Will be followed by the content type string."
+#~ msgid "Error when getting information for content type"
+#~ msgstr "שגיאה בקבלת מידע על סוג התוכן"
 
 #~ msgid ""
 #~ "<b>Excluded folders:</b>\n"

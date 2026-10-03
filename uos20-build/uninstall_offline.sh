@@ -60,20 +60,33 @@ rm -f "$REAL_HOME/.local/share/applications/io.github.cboxdoerfer.FSearch.deskto
 rm -f "$REAL_HOME/桌面/io.github.cboxdoerfer.FSearch.desktop" \
       "$REAL_HOME/Desktop/io.github.cboxdoerfer.FSearch.desktop"
 
-echo "== 删除文件管理器右键菜单项（选中文件夹 SingleDir + 空白处 EmptyArea）=="
-for f in fsearch-search.desktop fsearch-search-blank.desktop; do
+echo "== 删除文件管理器右键菜单项（选中文件夹 SingleDir + 空白处 EmptyArea + 快捷方式 SingleFile）=="
+for f in fsearch-search.desktop fsearch-search-blank.desktop fsearch-search-link.desktop; do
     rm -f "/usr/share/deepin/dde-file-manager/oem-menuextensions/$f"
     rm -f "$REAL_HOME/.local/share/deepin/dde-file-manager/oem-menuextensions/$f"
 done
+
+echo "== 注销开机自启动（systemd --user 服务 + XDG autostart 残留）=="
+# systemd --user 单元由 fsearch 本体（已被删）无法再自行注销，故这里代为清理。
+if command -v systemctl >/dev/null 2>&1; then
+    sudo -u "$REAL_USER" env XDG_RUNTIME_DIR="/run/user/$(id -u "$REAL_USER")" \
+        systemctl --user disable --now fsearch.service 2>/dev/null || true
+    sudo -u "$REAL_USER" env XDG_RUNTIME_DIR="/run/user/$(id -u "$REAL_USER")" \
+        systemctl --user reset-failed fsearch.service 2>/dev/null || true
+fi
+rm -f "$REAL_HOME/.config/systemd/user/fsearch.service"
+rm -f "$REAL_HOME/.config/autostart/fsearch.desktop"
+rm -f "$REAL_HOME/.config/autostart/io.github.cboxdoerfer.FSearch.desktop"
+echo "  已清理 systemd user 单元与 XDG 自启动项。"
 
 if [ "$DELETE_CONFIG" = "yes" ]; then
     echo "== 删除当前用户的配置、搜索数据库、自启动与右键菜单设置 =="
     rm -rf "$REAL_HOME/.config/fsearch"
     rm -rf "$REAL_HOME/.cache/fsearch"
     rm -rf "$REAL_HOME/.local/share/fsearch"
-    rm -f "$REAL_HOME/.config/autostart/fsearch.desktop"
-    rm -f "$REAL_HOME/.local/share/deepin/dde-file-manager/oem-menuextensions/fsearch-search.desktop"
-    rm -f "$REAL_HOME/.local/share/deepin/dde-file-manager/oem-menuextensions/fsearch-search-blank.desktop"
+    for f in fsearch-search.desktop fsearch-search-blank.desktop fsearch-search-link.desktop; do
+        rm -f "$REAL_HOME/.local/share/deepin/dde-file-manager/oem-menuextensions/$f"
+    done
     echo "已删除用户配置与搜索数据库。"
 else
     echo "已保留用户配置与搜索数据库（~/.config/fsearch、~/.cache/fsearch）。"

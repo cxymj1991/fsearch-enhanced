@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 17:26+0200\n"
-"PO-Revision-Date: 2026-07-06 13:01+0000\n"
+"POT-Creation-Date: 2026-09-20 13:29+0200\n"
+"PO-Revision-Date: 2026-07-23 10:01+0000\n"
 "Last-Translator: Oğuz Ersen <oguz@ersen.moe>\n"
 "Language-Team: Turkish <https://hosted.weblate.org/projects/fsearch/"
 "translations/tr/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.7.1.dev0\n"
+"X-Generator: Weblate 2026.8.dev0\n"
 
 #: data/io.github.cboxdoerfer.FSearch.desktop.in.in:4 src/main.c:35
 msgid "FSearch"
@@ -150,14 +150,85 @@ msgid "Christian Boxdörfer"
 msgstr "Christian Boxdörfer"
 
 #: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:89
+msgid ""
+"Fix crash when the filesystem monitor received events for unknown watches "
+"(e.g. after aborted scans or removed folders)"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:90
+msgid ""
+"Fix possible crash and removal of unrelated entries when folders are removed "
+"from the database"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:91
+msgid "Fix implicit AND placement in search queries (#742)"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:92
+msgid "Fix wrong icon size when the scale factor changes (#718)"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:93
+msgid "Fix icons not refreshing after a theme change"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:94
+#, fuzzy
+msgid "Fix broken single click to open"
+msgstr "Açmak için tek tıkla"
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:95
+msgid "Fix row activation not working outside of the columns"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:96
+msgid "Fix new window action not working"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:97
+msgid "Fix blocking UI when opening files in some situations"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:98
+msgid "Fix memory leak when building the file list for file actions"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:99
+msgid "Try to guess the content type of a file if querying it failed"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:100
+msgid "Only show the welcome dialog when upgrading from versions before 0.3"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:101
+msgid ""
+"Improve database update performance (faster sorting, insertion and removal "
+"of entries)"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:108
+msgid "Fix blocking UI when loading icons"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:109
+msgid "Fix option 'action after file open' not getting saved"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:110
+msgid "Remove duplicate language to fix build on newer gettext versions"
+msgstr ""
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:117
 msgid "DB rewrite"
 msgstr "Veri tabanı yeniden yazıldı"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:90
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:118
 msgid "DB: Add support for filesystem monitoring"
 msgstr "Veri tabanı: Dosya sistemi izleme desteği eklendi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:91
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:119
 msgid ""
 "DB: Allow files and folders to be excluded based on fixed patterns, "
 "wildcards or regular expressions"
@@ -165,7 +236,7 @@ msgstr ""
 "Veri tabanı: Dosya ve klasörlerin sabit kalıplara, joker karakterlere veya "
 "düzenli ifadelere göre hariç tutulmasına izin verildi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:92
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:120
 msgid ""
 "DB: Allow included folders to be scheduled and scanned after launch "
 "independently"
@@ -173,66 +244,79 @@ msgstr ""
 "Veri tabanı: Dahil edilen klasörlerin, başlatıldıktan sonra bağımsız olarak "
 "zamanlanmasına ve taranmasına izin verildi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:93
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:121
 msgid "DB: Make rescanning more efficient"
 msgstr "Veri tabanı: Yeniden tarama daha verimli hale getirildi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:94
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:122
 msgid "DB: Store database config in DB file"
 msgstr ""
 "Veri tabanı: Veri tabanı yapılandırması veri tabanı dosyasına kaydedildi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:95
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:123
 msgid "DB: Add checksum to DB file"
 msgstr "Veri tabanı: Veri tabanı dosyasına sağlama toplamı eklendi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:96
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:124
 msgid "Make icon and file info gathering asynchronous (no UI blocking)"
 msgstr ""
 "Simge ve dosya bilgilerinin toplanması (kullanıcı arayüzünü engellemeden) "
 "eşzamansız hale getirildi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:103
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:125
+msgid "Reduce memory usage"
+msgstr "Bellek kullanımı azaltıldı"
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:126
+msgid "Add contextual help for all preferences"
+msgstr "Tüm tercihler için içeriğe özel yardım eklendi"
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:127
+msgid "Numerous bug fixes and stability and performance improvements"
+msgstr ""
+"Çok sayıda hata düzeltmesi ile kararlılık ve performans iyileştirmeleri"
+
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:134
 msgid "New search engine"
 msgstr "Yeni arama motoru"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:104
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:135
 msgid "Greatly improved highlighting of search terms"
 msgstr "Arama terimlerinin vurgulanması büyük ölçüde iyileştirildi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:105
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:136
 msgid "Custom filters"
 msgstr "Özel filtreler"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:106
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:137
 msgid "Improved sort performance"
 msgstr "Sıralama performansı iyileştirildi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:107
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:138
 msgid "Improved scroll performance"
 msgstr "Kaydırma performansı iyileştirildi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:108
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:139
 msgid "Remember file selection after a database update"
 msgstr "Veri tabanı güncellemesinden sonra dosya seçimini hatırla"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:109
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:140
 msgid "Automatically scroll the result list in rubberband selection mode"
 msgstr "Bant seçim modunda sonuç listesini otomatik olarak kaydır"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:110
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:141
 msgid "Invert selection with rubber band when 'Ctrl' is pressed"
 msgstr "'Ctrl' tuşuna basıldığında bantla seçimi ters çevir"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:111
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:142
 msgid "Focus search entry when the main window gets activated"
 msgstr "Ana pencere etkinleştirildiğinde arama girdisine odaklan"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:112
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:143
 msgid "Add filter for applications (i.e. .desktop files)"
 msgstr "Uygulamalar için (örn. .desktop dosyaları) filtre eklendi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:113
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:144
 msgid ""
 "Add option to launch applications directly instead of opening the .desktop "
 "files"
@@ -240,15 +324,15 @@ msgstr ""
 ".desktop dosyalarını açmak yerine uygulamaları doğrudan başlatma seçeneği "
 "eklendi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:114
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:145
 msgid "Show application icons for .desktop files"
 msgstr ".desktop dosyaları için uygulama simgelerini göster"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:115
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:146
 msgid "Add .odp and .ods files to document filter"
 msgstr "Belge filtresine .odp ve .ods dosyaları eklendi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:116
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:147
 msgid ""
 "'Open with' menu now only shows applications which can handle the selected "
 "files"
@@ -256,7 +340,7 @@ msgstr ""
 "'Birlikte aç' menüsü artık yalnızca seçilen dosyaları işleyebilen "
 "uygulamaları gösteriyor"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:117
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:148
 msgid ""
 "Improved opening of multiple files with the same type (they get now passed "
 "as a list to applications, instead of one by one)"
@@ -264,22 +348,22 @@ msgstr ""
 "Aynı türde birden çok dosyanın açılması iyileştirildi (artık uygulamalara "
 "tek tek değil, bir liste olarak aktarılıyorlar)"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:118
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:149
 msgid "Better support for opening files in sandboxed mode"
 msgstr "Dosyaları korumalı modda açmak için daha iyi destek"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:119
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:150
 msgid ""
 "Add menu items with links to the issue tracker, forum and donation pages"
 msgstr ""
 "Sorun izleyici, forum ve bağış sayfalarına bağlantılar içeren menü ögeleri "
 "eklendi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:120
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:151
 msgid "Improve support for non-Linux systems"
 msgstr "Linux dışı sistemler için destek iyileştirildi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:121
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:152
 msgid ""
 "Add option to exit FSearch when Escape is pressed instead of minimizing the "
 "window"
@@ -287,20 +371,20 @@ msgstr ""
 "Escape tuşuna basıldığında pencereyi simge durumuna küçültmek yerine "
 "FSearch'ten çıkma seçeneği eklendi"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:122
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:153
 msgid "Exclude '/proc' and '/sys' by default"
 msgstr "'/proc' ve '/sys' öntanımlı olarak hariç tutuldu"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:123
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:154
 msgid "Open context menu when 'Menu' key or 'Shift + F10' are pressed"
 msgstr "'Menü' veya 'Shift + F10' tuşlarına basıldığında içerik menüsünü aç"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:124
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:155
 msgid "and tons of bug fixes, translation updates and smaller improvements"
 msgstr ""
 "ve birçok hata düzeltmesi, çeviri güncellemeleri ve küçük iyileştirmeler"
 
-#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:130
+#: data/io.github.cboxdoerfer.FSearch.metainfo.xml.in:161
 msgid "Initial release."
 msgstr "İlk sürüm."
 
@@ -312,27 +396,31 @@ msgstr "Oğuz Ersen"
 msgid "A search utility focusing on performance and advanced features"
 msgstr "Performansa ve gelişmiş özelliklere odaklanan bir arama programı"
 
-#: src/fsearch.c:766
+#: src/fsearch.c:330
+msgid "Saving database and config…"
+msgstr "Veri tabanı ve yapılandırma kaydediliyor…"
+
+#: src/fsearch.c:807
 msgid "Open a new application window"
 msgstr "Yeni bir uygulama penceresi aç"
 
-#: src/fsearch.c:767
+#: src/fsearch.c:808
 msgid "Minimize the application window"
 msgstr "Uygulama penceresini küçült"
 
-#: src/fsearch.c:768
+#: src/fsearch.c:809
 msgid "Show the application preferences"
 msgstr "Uygulama tercihlerini göster"
 
-#: src/fsearch.c:769
+#: src/fsearch.c:810
 msgid "Set the search pattern"
 msgstr "Arama kalıbını ayarla"
 
-#: src/fsearch.c:770
+#: src/fsearch.c:811
 msgid "Update the database and exit"
 msgstr "Veri tabanını güncelle ve çık"
 
-#: src/fsearch.c:771
+#: src/fsearch.c:812
 msgid "Print version information and exit"
 msgstr "Sürüm bilgilerini yazdır ve çık"
 
@@ -410,8 +498,8 @@ msgstr "Etkin"
 msgid "Pattern"
 msgstr "Kalıp"
 
-#: src/fsearch_database_preferences_widget.c:694 src/fsearch_window.c:773
-#: src/menus.ui:275
+#: src/fsearch_database_preferences_widget.c:694 src/fsearch_window.c:769
+#: src/menus.ui:276
 msgid "Type"
 msgstr "Tür"
 
@@ -423,8 +511,8 @@ msgstr "Eşleşme"
 msgid "Applies To"
 msgstr "Uygulanır"
 
-#: src/fsearch_database_preferences_widget.c:864 src/fsearch_window.c:759
-#: src/menus.ui:219 src/menus.ui:267
+#: src/fsearch_database_preferences_widget.c:864 src/fsearch_window.c:755
+#: src/menus.ui:220 src/menus.ui:268
 msgid "Path"
 msgstr "Yol"
 
@@ -507,56 +595,56 @@ msgstr "Gizli dosya ve klasörleri dışarıda bırak"
 msgid "Exclude"
 msgstr "Dışarıda bırak"
 
-#: src/fsearch_file_utils.c:161
+#: src/fsearch_file_utils.c:163
 msgctxt "Will be followed by the path of the file."
 msgid "Error when removing file"
 msgstr "Dosya kaldırılırken hata oluştu"
 
-#: src/fsearch_file_utils.c:163
+#: src/fsearch_file_utils.c:165
 msgid "Failed to get path"
 msgstr "Yol alınamadı"
 
-#: src/fsearch_file_utils.c:277
+#: src/fsearch_file_utils.c:269
 msgctxt "Will be followed by the file path."
 msgid "Error when getting information from file"
 msgstr "Dosyadan bilgi alınırken hata oluştu"
 
-#: src/fsearch_file_utils.c:279
+#: src/fsearch_file_utils.c:271
 msgid "Failed to get application information"
 msgstr "Uygulama bilgileri alınamadı"
 
-#: src/fsearch_file_utils.c:294
-msgctxt "Will be followed by the content type string."
-msgid "Error when getting information for content type"
-msgstr "İçerik türü için bilgi alınırken hata oluştu"
+#: src/fsearch_file_utils.c:384 src/fsearch_file_utils.c:515
+msgctxt "Will be followed by the file path."
+msgid "Error when opening file"
+msgstr "Dosya açılırken hata oluştu"
 
-#: src/fsearch_file_utils.c:296
+#: src/fsearch_file_utils.c:386 src/fsearch_file_utils.c:517
 msgid "No default application registered"
 msgstr "Kayıtlı öntanımlı uygulama yok"
 
-#: src/fsearch_file_utils.c:524
+#: src/fsearch_file_utils.c:536
 msgctxt "Will be followed by the path of the folder."
 msgid "Error when opening parent folder"
 msgstr "Üst klasör açılırken hata oluştu"
 
-#: src/fsearch_file_utils.c:526
+#: src/fsearch_file_utils.c:538
 msgid "Failed to get parent path"
 msgstr "Üst yol alınamadı"
 
-#: src/fsearch_file_utils.c:530
+#: src/fsearch_file_utils.c:542
 msgctxt "Will be followed by the path of the folder."
 msgid "Error while opening folder"
 msgstr "Klasör açılırken hata oluştu"
 
-#: src/fsearch_file_utils.c:533
+#: src/fsearch_file_utils.c:545
 msgid "Failed to build open command"
 msgstr "Aç komutu oluşturulamadı"
 
-#: src/fsearch_file_utils.c:589
+#: src/fsearch_file_utils.c:601
 msgid "Folder"
 msgstr "Klasör"
 
-#: src/fsearch_file_utils.c:595
+#: src/fsearch_file_utils.c:607
 msgid "Unknown Type"
 msgstr "Bilinmeyen Tür"
 
@@ -646,8 +734,8 @@ msgstr ""
 msgid "Add filter"
 msgstr "Filtre ekle"
 
-#: src/fsearch_filter_preferences_widget.c:315 src/fsearch_window.c:752
-#: src/menus.ui:215 src/menus.ui:263
+#: src/fsearch_filter_preferences_widget.c:315 src/fsearch_window.c:748
+#: src/menus.ui:216 src/menus.ui:264
 msgid "Name"
 msgstr "Ad"
 
@@ -727,7 +815,7 @@ msgstr "Farklı bir arama deneyin"
 msgid "Sorting results…"
 msgstr "Sonuçlar sıralanıyor…"
 
-#: src/fsearch_preferences.ui:7 src/fsearch_window.ui:251 src/menus.ui:84
+#: src/fsearch_preferences.ui:7 src/fsearch_window.ui:251 src/menus.ui:85
 msgid "Preferences"
 msgstr "Tercihler"
 
@@ -865,7 +953,7 @@ msgstr "Filtre:"
 msgid "Search"
 msgstr "Ara"
 
-#: src/fsearch_preferences.ui:854
+#: src/fsearch_preferences.ui:855
 msgid ""
 "<b>Enable dark theme:</b>\n"
 "\n"
@@ -884,7 +972,7 @@ msgstr ""
 "Tüm sistem temalarının böyle koyu bir çeşit sağlamadığını, bu nedenle bu "
 "ayarın etkinleştirilmesinin bir etkisi olmayabileceğini unutmayın."
 
-#: src/fsearch_preferences.ui:872
+#: src/fsearch_preferences.ui:873
 msgid ""
 "<b>Enable client-side decorations:</b>\n"
 "\n"
@@ -906,7 +994,7 @@ msgstr ""
 "Bu, daha geleneksel bir kullanıcı arayüzü düzenine benzer ve biraz daha "
 "fazla yer kaplar."
 
-#: src/fsearch_preferences.ui:892
+#: src/fsearch_preferences.ui:893
 msgid ""
 "<b>Use binary units instead of decimal units:</b>\n"
 "\n"
@@ -926,7 +1014,7 @@ msgstr ""
 "\t• <b>Onluk birimler:</b> Bu, onluk SI ön ekleri anlamına gelir <i>(örn. 1 "
 "kB = 1000 bayt)</i>"
 
-#: src/fsearch_preferences.ui:912
+#: src/fsearch_preferences.ui:913
 msgid ""
 "<b>Remember window size:</b>\n"
 "\n"
@@ -944,7 +1032,7 @@ msgstr ""
 "Bazı pencere yöneticilerinin bu isteği yok saydığını ve pencereyi farklı bir "
 "boyuta sahip olmaya zorladığını unutmayın."
 
-#: src/fsearch_preferences.ui:931
+#: src/fsearch_preferences.ui:932
 msgid ""
 "<b>Behaviour after successfully opening a file:</b>\n"
 "\n"
@@ -973,7 +1061,7 @@ msgstr ""
 "\t• <b>klavye kısayolları veya menü girdileri</b> ve/veya\n"
 "\t• <b>fareyle tıklama</b>"
 
-#: src/fsearch_preferences.ui:955
+#: src/fsearch_preferences.ui:956
 msgid ""
 "<b>Show highlighted search terms:</b>\n"
 "\n"
@@ -999,7 +1087,7 @@ msgstr ""
 "Bu, yıldız işaretiyle başlayan veya biten düzenli ifadeler ve joker karakter "
 "ifadeleri için de işe yarar. "
 
-#: src/fsearch_preferences.ui:977
+#: src/fsearch_preferences.ui:978
 msgid ""
 "<b>Show tooltips:</b>\n"
 "\n"
@@ -1011,7 +1099,7 @@ msgstr ""
 "Etkinleştirilirse, sonuçlar görünümü odaklanılan dosyanın/klasörün tam "
 "yolunu küçük bir ipucu penceresinde gösterecektir."
 
-#: src/fsearch_preferences.ui:994
+#: src/fsearch_preferences.ui:995
 msgid ""
 "<b>Show icons in name column:</b>\n"
 "\n"
@@ -1021,7 +1109,7 @@ msgstr ""
 "\n"
 "Etkinleştirilirse, dosya/klasör simgeleri ad sütununda gösterilecektir."
 
-#: src/fsearch_preferences.ui:1011
+#: src/fsearch_preferences.ui:1012
 msgid ""
 "<b>Remember column configuration:</b>\n"
 "\n"
@@ -1035,7 +1123,7 @@ msgstr ""
 "görünümünün sütun yapılandırması geri yüklenecektir. Bu, tüm sütunların "
 "boyutunu ve görünürlüğünü içerir."
 
-#: src/fsearch_preferences.ui:1028
+#: src/fsearch_preferences.ui:1029
 msgid ""
 "<b>Remember sort order:</b>\n"
 "\n"
@@ -1047,7 +1135,7 @@ msgstr ""
 "Etkinleştirilirse, bir FSearch penceresi açtığınızda önceki oturumun "
 "sonuçlar görünümünün sıralama düzeni geri yüklenecektir."
 
-#: src/fsearch_preferences.ui:1045
+#: src/fsearch_preferences.ui:1046
 msgid ""
 "<b>Open path with double click in path column:</b>\n"
 "\n"
@@ -1057,7 +1145,7 @@ msgstr ""
 "\n"
 "Etkinleştirilirse, yol sütununa çift tıklamak seçili yolu açacaktır."
 
-#: src/fsearch_preferences.ui:1062
+#: src/fsearch_preferences.ui:1063
 msgid ""
 "<b>Single click to open:</b>\n"
 "\n"
@@ -1071,7 +1159,7 @@ msgstr ""
 "etkinken yalnızca bir dosya/klasör seçmek istiyorsanız, <i>Ctrl</i> tuşuna "
 "basılı tutarak dosyaya/klasöre tıklamanız gerekir."
 
-#: src/fsearch_preferences.ui:1079
+#: src/fsearch_preferences.ui:1080
 msgid ""
 "<b>Show database indexing status:</b>\n"
 "\n"
@@ -1082,7 +1170,7 @@ msgstr ""
 "\n"
 "Etkinleştirilirse, indekslenmekte olan yol durum çubuğunda görüntülenir."
 
-#: src/fsearch_preferences.ui:1096
+#: src/fsearch_preferences.ui:1097
 msgid ""
 "<b>Show warning dialogs:</b>\n"
 "\n"
@@ -1094,7 +1182,7 @@ msgstr ""
 "Etkinleştirilirse, bir dosya veya klasör açılamadığında bir uyarı penceresi "
 "görüntülenir."
 
-#: src/fsearch_preferences.ui:1113
+#: src/fsearch_preferences.ui:1114
 msgid ""
 "<b>Search in path when query contains path separators:</b>\n"
 "\n"
@@ -1106,7 +1194,7 @@ msgstr ""
 "Etkinleştirilirse, yol ayırıcıları (yani \"/\") içeren arama terimleri, bir "
 "dosya veya klasörün tam yoluyla otomatik olarak eşleştirilecektir."
 
-#: src/fsearch_preferences.ui:1130
+#: src/fsearch_preferences.ui:1131
 msgid ""
 "<b>Match case when query contains at least one upper case character:</b>\n"
 "\n"
@@ -1122,7 +1210,7 @@ msgstr ""
 "bir arama teriminin <i>FooBar.txt</i> ile eşleşeceği ancak <i>foobar.txt</i> "
 "ile eşleşmeyeceği anlamına gelir."
 
-#: src/fsearch_preferences.ui:1147
+#: src/fsearch_preferences.ui:1148
 msgid ""
 "<b>Hide results when search is empty:</b>\n"
 "\n"
@@ -1139,7 +1227,7 @@ msgstr ""
 "Devre dışı bırakılırsa, arama girdisi boş olduğunda tüm dosyalar ve "
 "klasörler görüntülenecektir."
 
-#: src/fsearch_preferences.ui:1166
+#: src/fsearch_preferences.ui:1167
 msgid ""
 "<b>Search as you type:</b>\n"
 "\n"
@@ -1155,7 +1243,7 @@ msgstr ""
 "Devre dışı bırakılırsa, arama yalnızca <i>Enter</i> tuşuna veya ara "
 "düğmesine bastığınızda güncellenir. "
 
-#: src/fsearch_preferences.ui:1185
+#: src/fsearch_preferences.ui:1186
 msgid ""
 "<b>Update database on start:</b>\n"
 "\n"
@@ -1167,7 +1255,7 @@ msgstr ""
 "Etkinleştirilirse, FSearch başlatıldığında veri tabanı arka planda otomatik "
 "olarak güncellenecektir."
 
-#: src/fsearch_preferences.ui:1202
+#: src/fsearch_preferences.ui:1203
 msgid ""
 "<b>Included folders:</b>\n"
 "\n"
@@ -1189,7 +1277,7 @@ msgstr ""
 "• <b>Bir Dosya Sistemi:</b> Etkinleştirilirse, FSearch bu klasör için dosya "
 "sistemi sınırlarını aşmayacaktır"
 
-#: src/fsearch_preferences.ui:1223
+#: src/fsearch_preferences.ui:1224
 msgid ""
 "<b>Add folder to database:</b>\n"
 "\n"
@@ -1201,7 +1289,7 @@ msgstr ""
 "Bu düğme, arama için veri tabanına dahil etmek istediğiniz bir klasörü "
 "seçebileceğiniz bir iletişim kutusu açar."
 
-#: src/fsearch_preferences.ui:1240
+#: src/fsearch_preferences.ui:1241
 msgid ""
 "<b>Add a specific path:</b>\n"
 "\n"
@@ -1209,8 +1297,13 @@ msgid ""
 "include that folder in the database. This is useful for adding a path "
 "directly without browsing for it."
 msgstr ""
+"<b>Belirli bir yol ekle:</b>\n"
+"\n"
+"Buraya bir klasörün tam yolunu yazın ve yanındaki düğmeye tıklayarak o "
+"klasörü veri tabanına ekleyin. Bu, yolu aramaya gerek kalmadan doğrudan "
+"eklemek için kullanışlıdır."
 
-#: src/fsearch_preferences.ui:1257
+#: src/fsearch_preferences.ui:1258
 msgid ""
 "<b>Remove selected row:</b>\n"
 "\n"
@@ -1220,7 +1313,7 @@ msgstr ""
 "\n"
 "Bu, seçilen klasörü dahil edilen klasörler listesinden kaldırır."
 
-#: src/fsearch_preferences.ui:1274
+#: src/fsearch_preferences.ui:1275
 msgid ""
 "<b>Attempt to monitor:</b>\n"
 "\n"
@@ -1231,16 +1324,30 @@ msgid ""
 "system resources per watched folder. For large directory trees with many "
 "files the system may run out of resources to watch them all."
 msgstr ""
+"<b>İzlemeye çalış:</b>\n"
+"\n"
+"Etkinleştirilirse, FSearch bu klasördeki değişiklikleri izler ve veri "
+"tabanını otomatik olarak güncel tutar; böylece elle yeniden tarama yapmanız "
+"gerekmez.\n"
+"\n"
+"İzleme özelliği her dosya sisteminde desteklenmez ve izlenen her klasör "
+"başına az miktarda sistem kaynağı kullanır. Çok sayıda dosya içeren büyük "
+"dizin ağaçlarında, sistemin tümünü izlemek için yeterli kaynağı kalmayabilir."
 
-#: src/fsearch_preferences.ui:1293
+#: src/fsearch_preferences.ui:1294
 msgid ""
 "<b>Scan after launch:</b>\n"
 "\n"
 "If enabled, this folder is rescanned every time FSearch starts, so the "
 "database reflects any changes made while FSearch wasn't running."
 msgstr ""
+"<b>Başlatıldıktan sonra tara:</b>\n"
+"\n"
+"Etkinleştirilirse, FSearch her başlatıldığında bu klasör yeniden taranır; "
+"böylece veri tabanı, FSearch çalışmadığı sırada yapılan tüm değişiklikleri "
+"gösterir."
 
-#: src/fsearch_preferences.ui:1310
+#: src/fsearch_preferences.ui:1311
 msgid ""
 "<b>Stay on one file system:</b>\n"
 "\n"
@@ -1248,8 +1355,13 @@ msgid ""
 "folder. Mounted file systems below it (e.g. external drives or network "
 "shares) are skipped."
 msgstr ""
+"<b>Bir dosya sisteminde kal:</b>\n"
+"\n"
+"Etkinleştirilirse, FSearch bu klasörü tararken dosya sistemi sınırlarını "
+"aşmayacaktır. Bu klasörün altında bulunan bağlı dosya sistemleri (örneğin, "
+"harici sürücüler veya ağ paylaşımları) atlanır."
 
-#: src/fsearch_preferences.ui:1327
+#: src/fsearch_preferences.ui:1328
 msgid ""
 "<b>Rescan every:</b>\n"
 "\n"
@@ -1259,8 +1371,16 @@ msgid ""
 "This is useful for folders on file systems that can't be monitored for "
 "changes."
 msgstr ""
+"<b>Yeniden tarama aralığı:</b>\n"
+"\n"
+"Etkinleştirilirse, bu klasör belirtilen aralıklarla otomatik olarak yeniden "
+"taranır. Yeniden taramanın ne sıklıkta yapılacağını belirlemek için saat ve "
+"dakika alanlarını kullanın.\n"
+"\n"
+"Bu, değişiklikleri izlenemeyen dosya sistemlerindeki klasörler için "
+"kullanışlıdır."
 
-#: src/fsearch_preferences.ui:1346
+#: src/fsearch_preferences.ui:1347
 msgid ""
 "<b>Exclude rules:</b>\n"
 "\n"
@@ -1279,21 +1399,37 @@ msgid ""
 "\t• <b>Applies To:</b> Whether the rule affects <i>Files</i>, <i>Folders</i> "
 "or both."
 msgstr ""
+"<b>Hariç tutma kuralları:</b>\n"
+"\n"
+"Bu liste, veri tabanından hariç tutmak istediğiniz dosya ve klasörler için "
+"kuralları içerir.\n"
+"\n"
+"\t• <b>Etkin:</b> Etkinleştirilirse, kural uygulanır ve kural ile eşleşen "
+"ögeler hariç tutulur.\n"
+"\t• <b>Kalıp:</b> Her bir ögeyle eşleştirilen metin, Tür'e göre "
+"değerlendirilir.\n"
+"\t• <b>Tür:</b> Kalıbın nasıl değerlendirildiği — <i>Gerçek anlamıyla</i> "
+"(tam metin), <i>Joker karakter</i> (* ve ? kullanılarak) veya <i>Düzenli "
+"ifade</i> (bir düzenli ifade).\n"
+"\t• <b>Eşleşme:</b> Kalıbın, ögenin <i>Tam Yolu</i> ile mi yoksa yalnızca "
+"<i>Temel Adı</i> (yol hariç adı) ile mi eşleştirileceği.\n"
+"\t• <b>Uygulanır:</b> Kuralın <i>Dosyalar</i>, <i>Klasörler</i> veya her "
+"ikisini de etkileyip etkileyemeyeceği."
 
-#: src/fsearch_preferences.ui:1369
+#: src/fsearch_preferences.ui:1370
 msgid ""
 "<b>Add exclude rule:</b>\n"
 "\n"
 "This adds a new, empty rule to the list. Edit its Pattern, Type, Match and "
 "Applies To columns to control what gets excluded from the database."
 msgstr ""
+"<b>Hariç tutma kuralı ekle:</b>\n"
+"\n"
+"Bu, listeye yeni ve boş bir kural ekler. Veri tabanından nelerin hariç "
+"tutulacağını belirlemek için bu kuralın Kalıp, Tür, Eşleşme ve Uygulanır "
+"sütunlarını düzenleyin."
 
-#: src/fsearch_preferences.ui:1386
-#, fuzzy
-#| msgid ""
-#| "<b>Remove selected row:</b>\n"
-#| "\n"
-#| "This removes the selected folder from the list of excluded folders."
+#: src/fsearch_preferences.ui:1387
 msgid ""
 "<b>Remove selected row:</b>\n"
 "\n"
@@ -1301,16 +1437,9 @@ msgid ""
 msgstr ""
 "<b>Seçili satırı kaldır:</b>\n"
 "\n"
-"Bu, seçilen klasörü dışarıda bırakılan klasörler listesinden kaldırır."
+"Bu, seçilen kuralı hariç tutma kuralları listesinden kaldırır."
 
-#: src/fsearch_preferences.ui:1403
-#, fuzzy
-#| msgid ""
-#| "<b>Restore default filters:</b>\n"
-#| "\n"
-#| "This button restores the default filter configuration.\n"
-#| "\n"
-#| "⚠ All filters which were created or edited by the user will be lost! ⚠"
+#: src/fsearch_preferences.ui:1404
 msgid ""
 "<b>Restore default exclude rules:</b>\n"
 "\n"
@@ -1318,14 +1447,14 @@ msgid ""
 "\n"
 "⚠ All rules which were created or edited by the user will be lost! ⚠"
 msgstr ""
-"<b>Öntanımlı filtreleri geri yükle:</b>\n"
+"<b>Öntanımlı hariç tutma kurallarını geri yükle:</b>\n"
 "\n"
-"Bu düğme, öntanımlı filtre yapılandırmasını geri yükler.\n"
+"Bu düğme, öntanımlı hariç tutma kurallarını geri yükler.\n"
 "\n"
-"⚠ Kullanıcı tarafından oluşturulan veya düzenlenen tüm filtreler "
+"⚠ Kullanıcı tarafından oluşturulan veya düzenlenen tüm kurallar "
 "kaybolacaktır! ⚠"
 
-#: src/fsearch_preferences.ui:1422
+#: src/fsearch_preferences.ui:1423
 msgid ""
 "<b>Exclude files and folders from database:</b>\n"
 "\n"
@@ -1341,7 +1470,7 @@ msgstr ""
 "<i>.git;.cache;*.swp</i>, <i>.git</i> veya <i>.cache</i> adına sahip ya da "
 "<i>.swp</i> ile biten tüm dosya veya klasörleri dışarıda bırakacaktır."
 
-#: src/fsearch_preferences.ui:1439
+#: src/fsearch_preferences.ui:1440
 msgid ""
 "<b>Exclude hidden files and folders:</b>\n"
 "\n"
@@ -1354,12 +1483,12 @@ msgstr ""
 "başlayan tüm dosyalar veya klasörler)</i>, veri tabanının dışında "
 "bırakılacaktır."
 
-#: src/fsearch_preferences.ui:1456
+#: src/fsearch_preferences.ui:1457
 msgid "Focus a setting to get a detailed description of what it does."
 msgstr ""
 "Ne yaptığına dair ayrıntılı bir açıklama görmek için bir ayara odaklanın."
 
-#: src/fsearch_preferences.ui:1469
+#: src/fsearch_preferences.ui:1470
 msgid ""
 "<b>Periodically update database at a specific time interval:</b>\n"
 "\n"
@@ -1383,7 +1512,7 @@ msgstr ""
 "\n"
 "<i><tt>fsearch --update-database</tt></i>"
 
-#: src/fsearch_preferences.ui:1490
+#: src/fsearch_preferences.ui:1491
 msgid ""
 "<b>Launch desktop files:</b>\n"
 "\n"
@@ -1400,7 +1529,7 @@ msgstr ""
 "genellikle bir metin düzenleyici olan bu tür dosyalar için öntanımlı "
 "işleyici ile açılacaktır."
 
-#: src/fsearch_preferences.ui:1507
+#: src/fsearch_preferences.ui:1508
 msgid ""
 "<b>Filters:</b>\n"
 "\n"
@@ -1421,7 +1550,7 @@ msgstr ""
 "istendiğinde etkinleştirebilirsiniz\n"
 "\t• <b>Sorgu:</b> Veri tabanının filtrelenmesi gereken arama terimi"
 
-#: src/fsearch_preferences.ui:1528
+#: src/fsearch_preferences.ui:1529
 msgid ""
 "<b>Add a new filter:</b>\n"
 "\n"
@@ -1431,7 +1560,7 @@ msgstr ""
 "\n"
 "Bu düğme, yeni bir filtre düzenleyebileceğiniz bir iletişim kutusu açar."
 
-#: src/fsearch_preferences.ui:1545
+#: src/fsearch_preferences.ui:1546
 msgid ""
 "<b>Remove selected filter:</b>\n"
 "\n"
@@ -1441,7 +1570,7 @@ msgstr ""
 "\n"
 "Bu düğme o anda seçili olan filtreyi kaldırır."
 
-#: src/fsearch_preferences.ui:1562
+#: src/fsearch_preferences.ui:1563
 msgid ""
 "<b>Edit selected filter:</b>\n"
 "\n"
@@ -1451,7 +1580,7 @@ msgstr ""
 "\n"
 "Bu düğme, seçili filtreyi düzenleyebileceğiniz bir iletişim kutusu açar."
 
-#: src/fsearch_preferences.ui:1579
+#: src/fsearch_preferences.ui:1580
 msgid ""
 "<b>Restore default filters:</b>\n"
 "\n"
@@ -1466,7 +1595,7 @@ msgstr ""
 "⚠ Kullanıcı tarafından oluşturulan veya düzenlenen tüm filtreler "
 "kaybolacaktır! ⚠"
 
-#: src/fsearch_preferences.ui:1598
+#: src/fsearch_preferences.ui:1599
 msgid ""
 "<b>Exit on Escape:</b>\n"
 "\n"
@@ -1478,8 +1607,8 @@ msgstr ""
 "Etkinleştirilirse, Escape tuşuna basıldığında FSearch penceresinin simge "
 "durumuna küçültülmesi yerine çıkış yapılacaktır."
 
-#: src/fsearch_preferences.ui:1617 src/fsearch_window.ui:290
-#: src/fsearch_window.ui:415 src/menus.ui:150 src/menus.ui:156
+#: src/fsearch_preferences.ui:1618 src/fsearch_window.ui:290
+#: src/fsearch_window.ui:415 src/menus.ui:151 src/menus.ui:157
 msgid "Help"
 msgstr "Yardım"
 
@@ -1487,7 +1616,7 @@ msgstr "Yardım"
 msgid "Database"
 msgstr "Veri tabanı"
 
-#: src/fsearch_result_view.c:381
+#: src/fsearch_result_view.c:491
 msgid "Invalid row data"
 msgstr "Geçersiz satır verisi"
 
@@ -1587,10 +1716,12 @@ msgid ""
 "The search was cancelled before it finished.\n"
 "<b>These results are incomplete.</b>"
 msgstr ""
+"Arama tamamlanamadan iptal edildi.\n"
+"<b>Bu sonuçlar eksiktir.</b>"
 
 #: src/fsearch_statusbar.ui:756
 msgid "PARTIAL"
-msgstr ""
+msgstr "KISMEN"
 
 #: src/fsearch_welcome_dialog.ui:26
 msgid "What's New in FSearch"
@@ -1607,17 +1738,6 @@ msgid "<big><b>File System Monitoring</b></big>"
 msgstr "<big><b>Dosya Sistemi İzleme</b></big>"
 
 #: src/fsearch_welcome_dialog.ui:163
-#, fuzzy
-#| msgid ""
-#| "You can now actively watch individual folders to eliminate frequent "
-#| "rescans. File changes then appear in your search results immediately.\n"
-#| "\n"
-#| "To enable this feature go to the Database section of the Preferences "
-#| "dialog.\n"
-#| "\n"
-#| "See the online dolcumentation for more information:\n"
-#| "<a href=\"URL\">https://github.com/cboxdoerfer/fsearch/wiki/Database-"
-#| "update</a>"
 msgid ""
 "You can now actively watch individual folders to eliminate frequent rescans. "
 "File changes then appear in your search results immediately.\n"
@@ -1669,19 +1789,19 @@ msgstr ""
 "yönlendirilebilir ve dosya adı ya da tam mutlak yol ile eşleşecek şekilde "
 "yapılandırılabilir."
 
-#: src/fsearch_window.c:766 src/menus.ui:279
+#: src/fsearch_window.c:762 src/menus.ui:280
 msgid "Size"
 msgstr "Boyut"
 
-#: src/fsearch_window.c:780 src/menus.ui:271
+#: src/fsearch_window.c:776 src/menus.ui:272
 msgid "Extension"
 msgstr "Uzantı"
 
-#: src/fsearch_window.c:787 src/menus.ui:283
+#: src/fsearch_window.c:783 src/menus.ui:284
 msgid "Date Modified"
 msgstr "Değiştirilme Tarihi"
 
-#: src/fsearch_window.c:801
+#: src/fsearch_window.c:797
 msgid ""
 "Sorting by <b>Type</b> can take a few seconds with many results.\n"
 "\n"
@@ -1702,59 +1822,59 @@ msgstr "Yeni pencere"
 msgid "Update database"
 msgstr "Veri tabanını güncelle"
 
-#: src/fsearch_window.ui:144 src/menus.ui:112
+#: src/fsearch_window.ui:144 src/menus.ui:113
 msgid "Search in Path"
 msgstr "Dosya Yolunda Ara"
 
-#: src/fsearch_window.ui:158 src/menus.ui:116
+#: src/fsearch_window.ui:158 src/menus.ui:117
 msgid "Match Case"
 msgstr "Büyük/Küçük Harfe Duyarlı"
 
-#: src/fsearch_window.ui:172 src/menus.ui:120
+#: src/fsearch_window.ui:172 src/menus.ui:121
 msgid "Enable RegEx"
 msgstr "Düzenli İfadeleri Etkinleştir"
 
-#: src/fsearch_window.ui:197 src/menus.ui:95
+#: src/fsearch_window.ui:197 src/menus.ui:96
 msgid "Show Statusbar"
 msgstr "Durum Çubuğunu Göster"
 
-#: src/fsearch_window.ui:211 src/menus.ui:99
+#: src/fsearch_window.ui:211 src/menus.ui:100
 msgid "Show Filter"
 msgstr "Filtreyi Göster"
 
-#: src/fsearch_window.ui:225 src/menus.ui:103
+#: src/fsearch_window.ui:225 src/menus.ui:104
 msgid "Show Search Button"
 msgstr "Arama Düğmesini Göster"
 
-#: src/fsearch_window.ui:275 src/fsearch_window.ui:356 src/menus.ui:129
+#: src/fsearch_window.ui:275 src/fsearch_window.ui:356 src/menus.ui:130
 msgid "FSearch Online"
 msgstr "FSearch Çevrim İçi"
 
-#: src/fsearch_window.ui:304 src/menus.ui:161
+#: src/fsearch_window.ui:304 src/menus.ui:162
 msgid "About"
 msgstr "Hakkında"
 
-#: src/fsearch_window.ui:329 src/menus.ui:47
+#: src/fsearch_window.ui:329 src/menus.ui:48
 msgid "Quit"
 msgstr "Çık"
 
-#: src/fsearch_window.ui:372 src/fsearch_window.ui:443 src/menus.ui:131
+#: src/fsearch_window.ui:372 src/fsearch_window.ui:443 src/menus.ui:132
 msgid "Donate"
 msgstr "Bağış Yap"
 
-#: src/fsearch_window.ui:387 src/menus.ui:142
+#: src/fsearch_window.ui:387 src/menus.ui:143
 msgid "Forum"
 msgstr "Forum"
 
-#: src/fsearch_window.ui:401 src/menus.ui:146
+#: src/fsearch_window.ui:401 src/menus.ui:147
 msgid "Bug Reports and Feature Requests"
 msgstr "Hata Bildirimleri ve Özellik İstekleri"
 
-#: src/fsearch_window.ui:460 src/menus.ui:133
+#: src/fsearch_window.ui:460 src/menus.ui:134
 msgid "GitHub Sponsors"
 msgstr "GitHub Sponsorları"
 
-#: src/fsearch_window.ui:474 src/menus.ui:137
+#: src/fsearch_window.ui:474 src/menus.ui:138
 msgid "PayPal"
 msgstr "PayPal"
 
@@ -1792,8 +1912,8 @@ msgstr "Dosyalar siliniyor…"
 msgid "Moving files to trash…"
 msgstr "Dosyalar çöp kutusuna taşınıyor…"
 
-#: src/fsearch_window_actions.c:238 src/fsearch_window_actions.c:533
-#: src/fsearch_window_actions.c:580
+#: src/fsearch_window_actions.c:238 src/fsearch_window_actions.c:538
+#: src/fsearch_window_actions.c:592
 msgid "Something went wrong."
 msgstr "Bir şeyler yanlış gitti."
 
@@ -1816,81 +1936,85 @@ msgstr "_Dosya"
 msgid "New Window"
 msgstr "Yeni Pencere"
 
-#: src/menus.ui:16 src/menus.ui:171
+#: src/menus.ui:17 src/menus.ui:172
 msgid "_Open"
 msgstr "_Aç"
 
-#: src/menus.ui:21
+#: src/menus.ui:22
 msgid "Open Folder"
 msgstr "Klasörü Aç"
 
-#: src/menus.ui:29
+#: src/menus.ui:30
 msgid "Update Database"
 msgstr "Veri Tabanını Güncelle"
 
-#: src/menus.ui:35
+#: src/menus.ui:36
 msgid "Cancel Update"
 msgstr "Güncellemeyi İptal Et"
 
-#: src/menus.ui:42
+#: src/menus.ui:43
 msgid "Close Window"
 msgstr "Pencereyi Kapat"
 
-#: src/menus.ui:54
+#: src/menus.ui:55
 msgid "_Edit"
 msgstr "_Düzenle"
 
-#: src/menus.ui:57 src/menus.ui:207
+#: src/menus.ui:58 src/menus.ui:208
 msgid "_Copy"
 msgstr "_Kopyala"
 
-#: src/menus.ui:62 src/menus.ui:228
+#: src/menus.ui:63 src/menus.ui:229
 msgid "Cu_t"
 msgstr "Ke_s"
 
-#: src/menus.ui:69
+#: src/menus.ui:70
 msgid "Select All"
 msgstr "Tümünü Seç"
 
-#: src/menus.ui:74
+#: src/menus.ui:75
 msgid "Deselect All"
 msgstr "Tümünün Seçimini Kaldır"
 
-#: src/menus.ui:78
+#: src/menus.ui:79
 msgid "Invert Selection"
 msgstr "Seçimi Tersine Çevir"
 
-#: src/menus.ui:92
+#: src/menus.ui:93
 msgid "_View"
 msgstr "_Görüntüle"
 
-#: src/menus.ui:109
+#: src/menus.ui:110
 msgid "_Search"
 msgstr "_Ara"
 
-#: src/menus.ui:126
+#: src/menus.ui:127
 msgid "_Help"
 msgstr "_Yardım"
 
-#: src/menus.ui:177
+#: src/menus.ui:178
 msgid "Open _With"
 msgstr "Birlikte _Aç"
 
-#: src/menus.ui:191
+#: src/menus.ui:192
 msgid "_Open Folder"
 msgstr "_Klasörü Aç"
 
-#: src/menus.ui:213
+#: src/menus.ui:214
 msgid "Copy as Text"
 msgstr "Metin Olarak Kopyala"
 
-#: src/menus.ui:223
+#: src/menus.ui:224
 msgid "Path + Name"
 msgstr "Yol + Ad"
 
-#: src/menus.ui:236
+#: src/menus.ui:237
 msgid "Move to _Trash"
 msgstr "_Çöp Kutusuna Taşı"
+
+#~ msgctxt "Will be followed by the content type string."
+#~ msgid "Error when getting information for content type"
+#~ msgstr "İçerik türü için bilgi alınırken hata oluştu"
 
 #~ msgid ""
 #~ "<b>Excluded folders:</b>\n"

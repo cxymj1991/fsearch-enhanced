@@ -63,6 +63,9 @@ fsearch_application_window_perform_search(FsearchApplicationWindow *self);
 void
 fsearch_application_window_set_scope(FsearchApplicationWindow *self, const char *folder);
 
+char *
+fsearch_application_window_get_search_root_limiter(FsearchApplicationWindow *self);
+
 FsearchStatusbar *
 fsearch_application_window_get_statusbar(FsearchApplicationWindow *self);
 
@@ -112,6 +115,9 @@ void
 fsearch_application_window_selection_for_each(FsearchApplicationWindow *self,
                                               FsearchDatabaseForeachFunc func,
                                               gpointer user_data);
+
+FsearchDatabaseEntryInfo *
+fsearch_application_window_get_entry_info_for_row(FsearchApplicationWindow *self, uint32_t row_idx);
 
 void
 fsearch_application_window_toggle_app_menu(FsearchApplicationWindow *self);

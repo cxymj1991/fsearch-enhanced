@@ -1,4 +1,5 @@
 #include "fsearch_database_exclude_manager.h"
+#include "fsearch_compat.h"
 
 #include <glib.h>
 #include <stdint.h>

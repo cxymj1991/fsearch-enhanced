@@ -26,6 +26,7 @@
 #include "fsearch_database_index_properties.h"
 #include "fsearch_database_info.h"
 #include "fsearch_database_work.h"
+#include "fsearch_desktop_shortcut.h"
 #include "fsearch_file_utils.h"
 #include "fsearch_preferences_dialog.h"
 #include "fsearch_preview.h"
@@ -49,6 +50,7 @@
 #include <gtk/gtkcssprovider.h>
 #include <linux/limits.h>
 #include <stdbool.h>
+#include <stdlib.h> // realpath()：把符号链接（文件夹快捷方式）解析成真实路径
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -513,7 +515,7 @@ fsearch_application_startup(GApplication *app) {
     g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", self->config->enable_dark_theme, NULL);
 
     // 把自带图标目录加入图标主题搜索路径，并设置默认窗口图标：
-    // 否则任务栏/标题栏的窗口图标会回退成主题默认的“齿轮”图标。
+    // 否则任务栏/标题栏的窗口图标会回退成主题默认的"齿轮"图标。
     // （托盘在 fsearch_tray_init 中也会做同样的 append，这里提前做并设置默认图标，
     //   确保窗口创建时（activate 阶段）就能按图标名解析到 fsearch 自己的图标。）
     {
@@ -559,7 +561,8 @@ fsearch_application_startup(GApplication *app) {
     set_accel_for_action(app, "win.focus_search", "<control>f");
     // Ctrl+N 为窗口级加速器：仅当 FSearch 窗口获得焦点（显示在前台）时才触发，
     // FSearch 不在前台时按键会传给当前聚焦的程序，不会拦截，因此可安全绑定。
-    set_accel_for_action(app, "app.new_window", "<control>n");
+    // 0.3.2 起 new_window 动作带一个 boolean 参数（true=最小化启动），故动作名需写全 "app.new_window(false)"。
+    set_accel_for_action(app, "app.new_window(false)", "<control>n");
     set_accel_for_action(app, "win.select_all", "<control>a");
     set_accel_for_action(app, "win.match_case", "<control>i");
     set_accel_for_action(app, "win.search_mode", "<control>r");
@@ -590,6 +593,27 @@ fsearch_application_init(FsearchApplication *app) {
     g_action_map_add_action_entries(G_ACTION_MAP(app), fsearch_app_entries, G_N_ELEMENTS(fsearch_app_entries), app);
 }
 
+// NOTE: Bump whenever we want to display a new welcome dialog
+// Make sure to also update the content of the welcome dialog
+#define FSEARCH_WELCOME_DIALOG_VERSION "0.3"
+
+static int
+version_compare(const char *a, const char *b) {
+    g_auto(GStrv) version_a = g_strsplit(a ? a : "", ".", -1);
+    g_auto(GStrv) version_b = g_strsplit(b ? b : "", ".", -1);
+    const guint num_version_components_a = g_strv_length(version_a);
+    const guint num_version_components_b = g_strv_length(version_b);
+
+    for (guint i = 0; i < MAX(num_version_components_a, num_version_components_b); i++) {
+        const long c_a = i < num_version_components_a ? strtol(version_a[i], NULL, 10) : 0;
+        const long c_b = i < num_version_components_b ? strtol(version_b[i], NULL, 10) : 0;
+        if (c_a != c_b) {
+            return c_a < c_b ? -1 : 1;
+        }
+    }
+    return 0;
+}
+
 static bool
 should_show_welcome_dialog(void) {
     g_autofree gchar *state_dir = fsearch_file_utils_get_app_user_state_dir();
@@ -606,7 +630,8 @@ should_show_welcome_dialog(void) {
     if (g_key_file_load_from_file(key_file, state_file, G_KEY_FILE_NONE, NULL)) {
         g_autofree gchar *last_version = g_key_file_get_string(key_file, "State", "last_seen_version", NULL);
 
-        if (g_strcmp0(last_version, PACKAGE_VERSION) != 0) {
+        // Only show if the user hasn't yet seen a version with this (or newer) welcome content.
+        if (version_compare(last_version, FSEARCH_WELCOME_DIALOG_VERSION) < 0) {
             should_show = true;
         }
     }
@@ -614,7 +639,6 @@ should_show_welcome_dialog(void) {
         should_show = true;
     }
 
-    // Update the INI file so the dialog isn't shown again for this version
     if (should_show) {
         g_key_file_set_string(key_file, "State", "last_seen_version", PACKAGE_VERSION);
 
@@ -706,10 +730,13 @@ fsearch_application_activate(GApplication *app) {
         FsearchApplicationWindow *window = get_first_application_window(FSEARCH_APPLICATION(app));
         if (window) {
             show_app_window(self, window, self->minimized);
-            // 右键菜单带 --search-in 唤起已有窗口时，把范围下拉框设为该文件夹并重新搜索
-            if (self->option_search_in) {
-                fsearch_application_window_set_scope(window, self->option_search_in);
-                g_clear_pointer(&self->option_search_in, g_free);
+            // 右键菜单带 --search-in 唤起已有窗口时，把范围下拉框设为该文件夹并重新搜索。
+            // 用 consume 而非直接清空，与 fsearch_window.c 的 window_added 处保持同一套
+            // "取走即置空"语义 —— 两个消费点互斥，谁先执行谁消费，避免范围被应用两次。
+            char *opt_root = fsearch_application_consume_option_search_in(self);
+            if (opt_root && *opt_root) {
+                fsearch_application_window_set_scope(window, opt_root);
+                g_free(opt_root);
             }
             return;
         }
@@ -744,33 +771,75 @@ fsearch_application_activate(GApplication *app) {
     self->start_hidden = false;
 }
 
-// 把命令行/右键菜单传入的“搜索根目录”规整为本地绝对路径。
-// 支持 file:// URI 与本地路径；传入未替换的占位符（%U/%u/%f/%F）或非目录时返回 NULL。
+// 把命令行/右键菜单传入的"搜索根目录"规整为本地绝对路径。
+//
+// 三种输入都能正确处理：
+//   1) 本地绝对路径                    —— 直接使用；
+//   2) file:// URI                     —— 先按 URI 规则反转义，若因未转义的中文/空格导致
+//                                         反转义失败，再直接剥掉 "file://" 前缀兜底
+//                                         （dde-file-manager 5.x 的 %f 传的是 file:// URI，
+//                                           但其中常含未做百分号转义的中文与空格）；
+//   3) 文件夹快捷方式（.desktop 文件）   —— 解析其 URL= / Exec= 还原出所指向的源目录，
+//                                         这正是"右键文件夹快捷方式 → 用 FSearch 搜索"的语义。
+//
+// 返回 NULL 表示无法得到有效目录（未替换的 %X 占位符、非目录、解析失败等），
+// 此时调用方应退回"整个数据库"搜索而不是报错。
 static char *
 normalize_search_root(const char *raw) {
     if (!raw || !*raw) {
         return NULL;
     }
-    // dde-file-manager 某些版本不替换占位符，直接把 %X 当值传进来，必须忽略。
-    // 空白处菜单用 %p（当前目录），若未被替换就是字面量，绝不能当路径。
-    if (g_strcmp0(raw, "%U") == 0 || g_strcmp0(raw, "%u") == 0 ||
-        g_strcmp0(raw, "%F") == 0 || g_strcmp0(raw, "%f") == 0 ||
-        g_strcmp0(raw, "%p") == 0 || g_strcmp0(raw, "%P") == 0) {
-        return NULL;
-    }
-    // 任何含 % 的字符串都视为未替换的模板（真实路径不会含 %），直接忽略，避免误当路径。
+    // dde-file-manager 某些版本不替换占位符，直接把 %X 字面量传进来，必须忽略。
+    // 真实路径不会含 %，故任何含 % 的输入都判定为未替换模板。
     if (strchr(raw, '%')) {
         return NULL;
     }
-    char *local = g_str_has_prefix(raw, "file://") ? g_filename_from_uri(raw, NULL, NULL) : g_strdup(raw);
-    if (!local) {
-        return NULL;
+
+    char *local = NULL;
+    if (g_str_has_prefix(raw, "file://")) {
+        // 先按标准 URI 反转义；失败则直接截取前缀（兼容未转义的中文/空格路径）
+        local = g_filename_from_uri(raw, NULL, NULL);
+        if (!local) {
+            g_autofree char *decoded = g_uri_unescape_string(raw, NULL);
+            if (decoded) {
+                const char *stripped = decoded + strlen("file://");
+                // 去掉可能的 authority（file://host/path 形式）
+                if (g_str_has_prefix(stripped, "/localhost/")) {
+                    stripped += strlen("localhost");
+                }
+                local = g_strdup(stripped);
+            }
+            else {
+                local = g_strdup(raw + strlen("file://"));
+            }
+        }
     }
-    if (!g_file_test(local, G_FILE_TEST_IS_DIR)) {
+    else {
+        local = g_strdup(raw);
+    }
+
+    if (!local || !*local) {
         g_free(local);
         return NULL;
     }
-    return local;
+
+    if (g_file_test(local, G_FILE_TEST_IS_DIR)) {
+        // 【必须解析成真实路径】快捷方式可能是符号链接：g_file_test 对链接返回 IS_DIR，
+        // 若直接把链接路径当搜索范围，与数据库里的真实路径前缀对不上，一条都搜不到
+        //（真机实测：右键"文件夹快捷方式"→ 范围显示为快捷方式本身 → 搜不到东西）。
+        // realpath 会解析整条符号链接链并规范化，得到真实目录。
+        char *real = realpath(local, NULL);
+        if (real) {
+            g_free(local);
+            local = real;
+        }
+        return local;
+    }
+
+    // 不是目录：尝试按"文件夹快捷方式(.desktop)"解析出目标目录
+    char *resolved = fsearch_resolve_desktop_target_dir(local);
+    g_free(local);
+    return resolved;
 }
 
 static gint
@@ -809,21 +878,54 @@ fsearch_application_command_line(GApplication *app, GApplicationCommandLine *cmd
         self->option_search_term = g_strdup(search_term);
     }
 
-    const gchar *search_in = NULL;
-    if (g_variant_dict_lookup(dict, "search-in", "&s", &search_in) && search_in) {
-        g_autofree char *normalized = normalize_search_root(search_in);
-        if (normalized) {
-            g_clear_pointer(&self->option_search_in, g_free);
-            self->option_search_in = g_steal_pointer(&normalized);
+    // --search-in：手工/脚本调用的选项（OEM 菜单已改用位置参数 Exec=… %u，见下方兜底）。
+    //
+    // 用 g_variant_dict_contains 而非 g_variant_dict_lookup 来判断"用户是否点了右键菜单"：
+    // 前者只看键是否存在，后者还会因值为 NULL 而返回 FALSE，那样会漏判成"用户没传"，
+    // 于是点错菜单项时会弹出一个全库搜索窗口。
+    const gboolean search_in_requested = g_variant_dict_contains(dict, "search-in");
+    if (search_in_requested) {
+        const gchar *raw = NULL;
+        if (g_variant_dict_lookup(dict, "search-in", "^&s", &raw) && raw) {
+            g_autofree char *normalized = normalize_search_root(raw);
+            if (normalized) {
+                g_clear_pointer(&self->option_search_in, g_free);
+                self->option_search_in = g_steal_pointer(&normalized);
+            }
         }
     }
-    // 兜底：dde-file-manager 某些版本不替换 %U，而是把目录作为独立位置参数传入，
-    // 此时 --search-in 拿到的是字面量占位符，需用位置参数里的真实目录兜底。
+    // 兜底：OEM 菜单的 Exec 现在写的是【位置参数】形式（Exec=… %u，不带 --search-in），
+    // 目标路径作为独立位置参数传入，从这里取。
+    //
+    // 为什么不再用 `--search-in %u`：若某个 dfm 版本没展开 %u，argv 会变成
+    // ["fsearch", "--search-in"]，GOption 对缺参选项直接报错并 exit(1) ——
+    // 表现为"点菜单完全没反应"（真机实测踩过）。而位置参数形式下，
+    // %u 没展开时 argv 就是 ["fsearch"]，退化为正常打开窗口 —— 与 0.3.1 的
+    // 实际表现一致（0.3.1 的 = 写法解析失败后也是照样开窗口，所以用户一直觉得能用）。
+    //
+    // 同时记录"是否存在位置参数"：若存在却解析不出目录（典型：右键了一个与应用无关的
+    // .desktop 启动器），说明这是菜单点击而非正常启动，下方据此静默退出，
+    // 保留 0.3.2 新增的菜单污染防护。
+    gboolean positional_seen = FALSE;
     if (!self->option_search_in) {
         gint argc = 0;
         g_autofree char **argv = g_application_command_line_get_arguments(cmdline, &argc);
-        for (gint i = 1; i < argc && !self->option_search_in; i++) {
+        for (gint i = 1; i < argc; i++) {
             if (g_str_has_prefix(argv[i], "--")) {
+                continue;
+            }
+            // dfm 没展开字段码时会传来字面量（"%f"/"%p"/"%u" 等）。
+            // 此时说明"用户点了菜单，但这个 dfm 版本不支持该字段码"——
+            // 优雅退化为正常打开窗口（与 0.3.1 的实际体验一致），不算污染场景，
+            // 不置 positional_seen（否则会走下面的静默退出，又变成"点了没反应"）。
+            if (g_strcmp0(argv[i], "%f") == 0 || g_strcmp0(argv[i], "%F") == 0 ||
+                g_strcmp0(argv[i], "%u") == 0 || g_strcmp0(argv[i], "%U") == 0 ||
+                g_strcmp0(argv[i], "%p") == 0 || g_strcmp0(argv[i], "%P") == 0 ||
+                g_strcmp0(argv[i], "%d") == 0 || g_strcmp0(argv[i], "%D") == 0) {
+                continue;
+            }
+            positional_seen = TRUE;
+            if (self->option_search_in) {
                 continue;
             }
             g_autofree char *normalized = normalize_search_root(argv[i]);
@@ -833,35 +935,73 @@ fsearch_application_command_line(GApplication *app, GApplicationCommandLine *cmd
         }
     }
 
-    // 右键“用 FSearch 搜索”每次都打开一个新的独立窗口（类似 Everything），
-    // 各窗口自带搜索范围下拉框，可并排搜索不同的文件夹与内容。
-    if (self->option_search_in) {
-        self->new_window = true;
-    }
-
-    // 调试日志：记录右键菜单传入的 --search-in 原始值、最终解析结果与完整命令行，
-    // 便于排查“右键搜索仍是全盘”的问题（正常使用时可忽略此文件）。
+    // 关键：显式带了 --search-in 却解析不出目标目录时，静默退出，绝不打开窗口。
+    //
+    // 原因：OEM 菜单里"文件夹快捷方式"用的是 SingleFile + MimeType=application/x-desktop，
+    // dde-file-manager 会把该菜单项加到**所有** .desktop 文件的右键菜单上
+    //（包括应用启动器、卸载器等无关条目）。若此时退化成"整个数据库"搜索，
+    // 用户右键任意一个无关的 .desktop 都会莫名弹出一个全盘搜索窗口，非常突兀。
+    // 正确行为是：只对能解析出源目录的文件夹快捷方式生效，其余静默忽略。
+    //
+    // 【重要】本判据依赖 `--search-in` 能进 GVariantDict，故选项类型【必须】是
+    // G_OPTION_ARG_STRING，不要改成 G_OPTION_ARG_CALLBACK。
+    //
+    // 原因：GApplication 是单实例，跨进程时只转发 GVariantDict + argv
+    // （gapplication.c 的 get_platform_data() 与 GApplicationCommandLine 的 arguments 属性）。
+    // G_OPTION_ARG_CALLBACK 的值不会进 dict（add_packed_option 的守卫是 `if (!arg_data)`，
+    // 而回调的 arg_data 是函数指针、非 NULL，会跳过打包），它只存在本进程的成员变量里，
+    // 转发给主实例后就丢了。届时本保护会静默失效（判据恒为 FALSE），
+    // 表现为右键任意一个无关的 .desktop 都弹出全库搜索窗口。
+    // fsearch 是托盘常驻，"已运行"恰恰是常态，所以这个场景必须防住。
+    //
+    // 另注：G_OPTION_FLAG_OPTIONAL_ARG **只对 G_OPTION_ARG_CALLBACK 生效**
+    // （goption.c: OPTIONAL_ARG 宏的第一个条件就是 arg == G_OPTION_ARG_CALLBACK），
+    // 加在 G_OPTION_ARG_STRING 上会被**静默忽略**。因此不要指望用它兜住"缺参"：
+    // 若 dfm 未展开字段码，argv 会变成 ["fsearch","--search-in"]，GOption 会报
+    // "Missing argument for --search-in" 并让 g_application_run() 直接 exit(1)，
+    // 根本走不到本段。该场景需要 EmptyArea 的 currentDir 为空串才触发
+    // （dfm 5.x 的 emptyAreaActoins() 用 action->setData(currentDir) 传 QString），
+    // 实践中最坏是 "/"，不会发生，故不做专门防御。
+    //
+    // 本段能兜住的是：值是字面量（未展开的 %f / %u 等，含 % → normalize_search_root 拒绝）。
+    // 【必须放在静默退出判断之前】调试日志：记录右键菜单传入的 --search-in 原始值、
+    // 最终解析结果与完整命令行。
+    // 之前这个块写在静默退出之后，导致"点了没反应"这种最需要排查的场景反而留不下任何记录
+    // （日志里看到的永远是上一次普通启动的旧值，极易误判）。
+    // 排查"右键搜索无效/点了没反应"时看这个文件（正常使用时会覆盖，无副作用）。
     {
         g_autofree char *cachedir = g_build_filename(g_get_user_cache_dir(), "fsearch", NULL);
         g_mkdir_with_parents(cachedir, 0700);
         g_autofree char *logpath = g_build_filename(cachedir, "last-search-in.log", NULL);
 
-        // 完整命令行（dde-file-manager 到底传了什么，一眼看清）
         gint argc = 0;
         g_autofree char **argv = g_application_command_line_get_arguments(cmdline, &argc);
         g_autoptr(GString) argv_str = g_string_new(NULL);
         for (gint i = 0; i < argc; i++) {
-            if (i) g_string_append_c(argv_str, ' ');
+            if (i) {
+                g_string_append_c(argv_str, ' ');
+            }
             g_string_append(argv_str, argv[i] ? argv[i] : "(null)");
         }
 
-        g_autofree char *dbg = g_strdup_printf(
-            "raw_search_in=%s  resolved_search_in=%s\n"
-            "argv=%s\n",
-            search_in ? search_in : "(null)",
-            self->option_search_in ? self->option_search_in : "(null)",
-            argv_str->str);
+        g_autofree char *dbg =
+            g_strdup_printf("search_in_requested=%s  positional_seen=%s  resolved_search_in=%s\nargv=%s\n",
+                            search_in_requested ? "yes" : "no",
+                            positional_seen ? "yes" : "no",
+                            self->option_search_in ? self->option_search_in : "(null)",
+                            argv_str->str);
         g_file_set_contents(logpath, dbg, -1, NULL);
+    }
+
+    if ((search_in_requested || positional_seen) && !self->option_search_in) {
+        g_debug("[app] --search-in/位置参数未能解析出有效目录（右键目标不是文件夹/文件夹快捷方式），静默退出");
+        return 0;
+    }
+
+    // 右键"用 FSearch 搜索"每次都打开一个新的独立窗口（类似 Everything），
+    // 各窗口自带搜索范围下拉框，可并排搜索不同的文件夹与内容。
+    if (self->option_search_in) {
+        self->new_window = true;
     }
 
     g_application_activate(G_APPLICATION(self));

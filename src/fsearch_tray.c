@@ -70,12 +70,17 @@ static void
 on_tray_quit(GtkMenuItem *item, gpointer user_data) {
     force_quit = TRUE;
     GtkApplication *app = GTK_APPLICATION(FSEARCH_APPLICATION_DEFAULT);
-    for (GList *l = gtk_application_get_windows(app); l; l = l->next) {
+    // 【关闭所有窗口】之前关掉第一个就 return，多窗口时得点两次"退出"才能全退
+    //（真机反馈）。注意 gtk_window_close 会修改窗口列表，必须先拷贝一份再遍历，
+    // 否则迭代器在链表节点被释放后失效。
+    GList *wins = g_list_copy(gtk_application_get_windows(app));
+    for (GList *l = wins; l; l = l->next) {
         if (FSEARCH_IS_APPLICATION_WINDOW(l->data)) {
             gtk_window_close(GTK_WINDOW(l->data));
-            return;
         }
     }
+    g_list_free(wins);
+    // 无论窗口是否全部关闭成功，直接退出整个应用（一次点击彻底退出）
     g_application_quit(G_APPLICATION(app));
 }
 

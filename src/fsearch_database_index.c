@@ -453,16 +453,25 @@ remove_and_free_folder_entry_locked(FsearchDatabaseIndex *self, FsearchDatabaseE
                     DATABASE_INDEX_PROPERTY_FLAG_SIZE,
                     false);
 
-    g_autoptr(DynamicArray) folders = fsearch_database_chunked_array_steal_descendants(self->folder_chunks,
-                                                                                       folder_entry_to_remove,
-                                                                                       -1);
+    const uint32_t num_folders = db_entry_folder_get_num_folders(folder_entry_to_remove);
+    g_autoptr(DynamicArray) folders = num_folders == 0
+                                        ? darray_new(0)
+                                        : fsearch_database_chunked_array_steal_descendants(self->folder_chunks,
+                                                                                           folder_entry_to_remove,
+                                                                                           -1);
 
+    // Get the total number of descendant files for bulk stealing
+    // also mark every folder to allow the index store to remove lots of entries quicker
+    uint32_t num_files = db_entry_folder_get_num_files(folder_entry_to_remove);
     for (uint32_t i = 0; i < darray_get_num_items(folders); ++i) {
         FsearchDatabaseEntry *folder_entry = darray_get_item(folders, i);
+        num_files += db_entry_folder_get_num_files(folder_entry);
         db_entry_set_mark(folder_entry, 1);
     }
-    // TODO: Rely on num_files to steal descendants instead
-    g_autoptr(DynamicArray) files = fsearch_database_chunked_array_steal_marked_folders(self->file_chunks);
+
+    g_autoptr(DynamicArray) files = fsearch_database_chunked_array_steal_descendants(self->file_chunks,
+                                                                                     folder_entry_to_remove,
+                                                                                     (int32_t)num_files);
 
     num_descendant_counted++;
     g_debug("found descendants in %f seconds", g_timer_elapsed(timer, NULL));
@@ -1107,25 +1116,22 @@ fsearch_database_index_scan(FsearchDatabaseIndex *self, GCancellable *cancellabl
         return false;
     }
 
-    darray_sort_multi_threaded(folders,
-                               (DynamicArrayCompareDataFunc)db_entry_compare_entries_by_full_path,
-                               cancellable,
-                               NULL);
-    darray_sort_multi_threaded(files, (DynamicArrayCompareDataFunc)db_entry_compare_entries_by_full_path, cancellable, NULL);
-
+    // Sorted by PATH, matching what a database load produces, so a scanned and a loaded index are
+    // ordered identically. Both orders keep a folder's descendants in one contiguous chunk, which is
+    // what the removal path relies on
     self->file_chunks = fsearch_database_chunked_array_new(files,
-                                                           TRUE,
+                                                           FALSE,
                                                            fsearch_database_sort_order_chain_for_property(
-                                                               DATABASE_INDEX_PROPERTY_PATH_FULL),
+                                                               DATABASE_INDEX_PROPERTY_PATH),
                                                            DATABASE_ENTRY_TYPE_FILE,
-                                                           NULL,
+                                                           cancellable,
                                                            (GDestroyNotify)db_entry_free_no_unparent);
     self->folder_chunks = fsearch_database_chunked_array_new(folders,
-                                                             TRUE,
+                                                             FALSE,
                                                              fsearch_database_sort_order_chain_for_property(
-                                                                 DATABASE_INDEX_PROPERTY_PATH_FULL),
+                                                                 DATABASE_INDEX_PROPERTY_PATH),
                                                              DATABASE_ENTRY_TYPE_FOLDER,
-                                                             NULL,
+                                                             cancellable,
                                                              (GDestroyNotify)db_entry_free_no_unparent);
 
     const int64_t scan_time = g_get_real_time() / G_USEC_PER_SEC;
