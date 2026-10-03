@@ -1,451 +1,116 @@
-# FSearch 增强版 0.3.2.1（统信 UOS 20 离线便携版）
+# FSearch 增强版
 
-基于上游 [cboxdoerfer/fsearch](https://github.com/cboxdoerfer/fsearch) **0.3.2**，
-把 0.3.1 增强版的全部定制功能迁移过来，并修复 4 个已知问题。
+基于上游 [cboxdoerfer/fsearch](https://github.com/cboxdoerfer/fsearch) **0.3.2** 的增强版，
+面向**统信 UOS 20**（Debian 10、GLib 2.58、GTK 3.24、X11）离线环境。
 
-> `0.3.2` 是上游版本号；`0.3.2.1` 是本增强版的发布号（源码内 `meson.build` 保持上游 `0.3.2`，
-> 与 0.3.1.1 的做法一致），只体现在 Git tag（`v0.3.2.1`）与 Release 上。
-
-- 上游协议：GPL-2.0（保持不变；上游原 README 见 `README.upstream.md`）
-- 目标环境：统信 UOS 20 专业版（Debian 10、GLib 2.58.3、GTK 3.24、X11）
-- 离线安装，不联网、不升级任何系统库、不替换任何系统自带文件
-
-> ✅ **已编译验证**
-> 2026-10-03 在 UOS 20 虚拟机首次编译成功：167 个目标全部通过，脚本自带 `ldd` 自检
-> 确认无未满足依赖。产物见下方「获取安装包」。
->
-> ⚠️ **旧包勿分发**
-> `编译后安装包/fsearch 0.3.1.1/fsearch-0.3.1.1-uos20-portable.tar.gz` 是 **0.3.1.1 的旧包**，
-> 其中 `install_offline.sh` 仍使用在 UOS 20 上失效的 `%p` 字段码，且自启动仍走会弹授权框的
-> XDG autostart 路径 —— **请勿分发该旧包**。请统一使用本版本的产物。
+上游是一个干净但"只管搜索"的工具，本版本补齐了中文办公场景真正会用到的能力：
+**托盘常驻、开机自启、文件管理器右键菜单、批量重命名、拖拽复制/剪切、全局快捷键**，
+并提供**免联网的离线安装包**（便携 tar.gz / 可双击安装的 deb）。
 
 ---
 
-## 一、上游 0.3.2 相比 0.3.1 改了什么（迁移前必须知道）
+## 一、比上游新增了什么
 
-0.3.2 是一次以"修 bug + 提性能"为主的更新，共触及 15 个源文件。迁移时**必须适配**的架构变化有 4 处：
-
-| 上游变更 | 影响 |
+| 功能 | 说明 |
 |---|---|
-| `app.new_window` 动作改为**带 boolean 参数**（`{"new_window", …, "b", …}`），参数表示"最小化启动" | 加速器绑定名从 `app.new_window` 变为 `app.new_window(false)`；`menus.ui` 新增 `target=false` |
-| 双击打开重构：`fsearch_window_action_open_generic()` 拆出 `FsearchOpenMode`，并新增 `fsearch_window_action_open_row(win, row_idx, open_parent)` | 我们的批量重命名 action 与之同文件，需挂在新的 `fsearch_window_actions[]` 表中 |
-| `fsearch_result_view` 移除 `app_gicon_cache`，新增 `scale_factor` / `icon_theme_change_handler_id`，并新增导出函数 `fsearch_result_view_get_entry_info()` | 窗口层若要用行信息应走新 API；图标缓存现在会随主题/缩放自动失效（对问题 3 有利） |
-| `meson.build` 把 `gio-unix-2.0` 依赖下限从 `>= 2.58` 提到 `>= 2.62` | **UOS 20 只有 GLib 2.58.3，直接编译会失败**，必须处理（见第四节） |
+| **系统托盘常驻** | 关闭窗口后隐藏到托盘继续实时索引；托盘左键唤出窗口，右键菜单可显示/退出 |
+| **开机自动启动** | 走 `systemd --user`，登录后仅驻留托盘。**不会**触发 UOS 的「是否允许开机启动」授权弹窗 |
+| **文件管理器右键菜单** | 在 dde-file-manager 中新增「用 FSearch 搜索…」，覆盖三个场景：<br>· 选中文件夹<br>· 文件夹空白处<br>· 文件夹快捷方式（.desktop，自动解析出其指向的源目录） |
+| **批量重命名** | 结果列表右键「批量重命名…」，支持查找替换 / 前后缀 / 序号 / 大小写 / 扩展名 / 删字符，可指定「仅第 N 个」「最后一个」「第 X 至第 Y 个」，带实时预览、冲突检测与撤销 |
+| **拖拽复制 / 剪切** | 结果列表多选后可直接拖到文件管理器窗口或桌面，支持复制与剪切 |
+| **全局唤起快捷键** | 自定义组合键（如 `Win+F`）全局唤起窗口，X11 有效 |
+| **限定搜索范围** | 工具栏下拉框可切换：整个数据库 / 已选文件夹 / 选择文件夹… / 最近 10 次历史 |
+| **窗口图标修复** | 任务栏显示 FSearch 图标而非默认齿轮（上游在部分桌面环境下显示异常） |
+| **命令行选项** | `--search-in=<目录>` 限定搜索根、`--hidden` 仅启动托盘与索引 |
+| **离线安装包** | 便携 tar.gz（解压即用）+ deb（双击安装），自带运行依赖，**不联网、不升级系统库、不替换系统自带文件** |
 
-其余变更（数据库分块删除性能、inotify 未知 wd 崩溃、查询隐式 AND 的解析 bug、
-图标随主题刷新、单击打开修复等）与我们的增强功能无交集，**原样保留、未做任何覆盖**。
+以上开关均可在 **首选项 → 界面** 中配置。
 
----
+### 相对 0.3.1 增强版修复的问题
 
-## 二、改动文件清单
+- 开机自启不再弹「是否允许 fsearch 开机启动」
+- 文件夹快捷方式的右键菜单正常出现
+- 任务栏图标正常显示
+- 拖拽复制/剪切生效
 
-### 新增文件（7 个模块 + 1 个垫片头，2500 行）
-
-| 文件 | 行数 | 作用 |
-|---|---|---|
-| `src/fsearch_tray.c/.h` | 156 | 系统托盘（GtkStatusIcon）：左键唤出窗口、右键菜单（显示/退出） |
-| `src/fsearch_autostart.c/.h` | 254 | 开机自启（**0.3.2 已重写，见问题 1**） |
-| `src/fsearch_context_menu.c/.h` | 206 | 文件管理器 OEM 右键菜单（**0.3.2 已扩展为 3 个场景**） |
-| `src/fsearch_global_hotkey.c/.h` | 240 | X11 全局唤起快捷键 |
-| `src/fsearch_batch_rename.c/.h` | 1160 | 搜索结果批量重命名（原样迁移） |
-| `src/fsearch_desktop_shortcut.c/.h` | 169 | **新增**：解析文件夹快捷方式（.desktop）指向的源目录 |
-| `src/fsearch_drag_drop.c/.h` | 233 | **新增**：结果列表多选拖拽复制/剪切 |
-| `src/fsearch_compat.h` | 82 | **新增**：GLib < 2.62 编译期垫片 |
-
-### 修改文件（18 个）
-
-| 文件 | 差异量 | 关键修改 |
-|---|---|---|
-| `src/fsearch.c` | ~300 行 | 接入 5 个新模块；`--hidden` / `--search-in` 两个命令行选项；`--search-in` 解析失败时**静默退出**；窗口图标与图标主题搜索路径（问题 3）；`app.new_window(false)` 适配 |
-| `src/fsearch_window.c` | 383 行 | 顶部"搜索范围"下拉框（整个数据库 / 已选文件夹 / 选择文件夹… / 最近 10 次历史 / 清除历史记录）；`delete-event` 关闭到托盘；`gtk_window_set_icon_name()`（问题 3）；拖拽初始化；`perform_search` 空指针防御 |
-| `src/fsearch_list_view.c` | 21 行 | **问题 4 关键**：框选手势在"从已选中行按下"时让位给拖拽；点击已选中行不再塌缩选区 |
-| `src/fsearch_config.c` / `.h` | 63 + 13 行 | 新增 `close_to_tray` / `autostart` / `context_menu` / `global_hotkey` / `recent_folders` |
-| `src/fsearch_query.c` / `.h` | 26 + 2 行 | 新增 `search_root` 字段，实现"限定搜索范围"过滤 |
-| `src/fsearch_window_actions.c` | 12 行 | 注册 `win.batch_rename` 动作 |
-| `src/fsearch_window.h` | 16 行 | 导出 `perform_search` / `set_scope` / `get_search_root_limiter` |
-| `src/fsearch.h` | 8 行 | 导出 `get_option_search_in` / `consume_option_search_in` |
-| `src/fsearch_preferences.ui` | 85 行 | 界面页新增 4 个控件（关闭到托盘 / 开机自启 / 右键菜单 / 全局快捷键） |
-| `src/fsearch_preferences_dialog.c` | 62 行 | 上述控件的读写绑定 + 组合键捕获（Mod4/Super 折叠、拒绝无修饰单键） |
-| `src/fsearch_window.ui` | 18 行 | 搜索框内插入 `scope_combo` |
-| `src/menus.ui` | 8 行 | 新增"批量重命名…"；保留 0.3.2 的 `target=false` 并补回 `accel` 展示 |
-| `src/meson.build` | 20 行 | 登记新模块；`gio-unix-2.0` 下限调回 2.58；新增 `dependency('x11')` |
-| `src/fsearch_database_exclude_manager.c` | 1 行 | 加 `#include "fsearch_compat.h"` |
-| `src/fsearch_database_include_manager.c` | 1 行 | 加 `#include "fsearch_compat.h"` |
-| `src/fsearch_result_view.c` | 3 行 | 加 `#include "fsearch_compat.h"` |
-| `一键编译.sh` | 新增 | 放在源码文件夹里，双击即可完成「编译 + 打 deb」；产物统一收进 `输出/` |
-| `uos20-build/*.sh` | — | 版本号 0.3.2、GLib 垫片校验、第三个 OEM 菜单项、自启清理、systemd 卸载、产物输出到 `输出/` |
-| `.gitattributes` | 新增 | 锁定 shell 脚本与源码为 LF |
+> 详细的实现说明、踩坑记录与验证方法，见 [`docs/增强实现说明.md`](docs/增强实现说明.md)。
 
 ---
 
-## 三、四个问题的修复方案与验证方法
+## 二、安装
 
-### 问题 1：开机自启仍弹「是否允许 fsearch 开机启动」
+到 **[Releases](../../releases)** 页面下载最新版本，**目标机无需联网**。
 
-**原因**（已查证）：0.3.1 的做法是往 `~/.config/autostart/` 写一个 `.desktop`。
-统信 UOS 桌面对**用户级 XDG autostart 目录中新出现、且未被系统应用数据库登记的条目**
-会做一次性授权确认。更糟的是原实现写的是 `fsearch.desktop`，与已安装桌面项的
-desktop file ID（`io.github.cboxdoerfer.FSearch.desktop`）不一致，系统应用管理器
-无法把它对应到已登记应用，因此每次都判定为"未知第三方程序"。
+### 方式 A：deb 双击安装（推荐）
 
-**修复**（`fsearch_autostart.c` 已重写）：改为**优先走 systemd --user 用户服务**
-（`~/.config/systemd/user/fsearch.service`）。systemd 的 user manager 直接按 unit 文件拉起，
-**不经过 XDG autostart 目录**，因此不触发授权弹窗。
-只有当 `systemctl --user enable` 失败时，才退回写 XDG autostart，
-且此时使用与桌面项一致的 desktop file ID 并显式写 `Hidden=false`。
+1. 下载 `fsearch-0.3.2-1_amd64.deb`
+2. 拷到 UOS 20 桌面，**双击**，按提示输入密码
 
-关键实现细节：
+安装后自动创建开始菜单与桌面入口，并可在首选项中开关右键菜单集成。
 
-- 显式补齐 `DISPLAY` / `XAUTHORITY` / `DBUS_SESSION_BUS_ADDRESS`，否则 user service 拉起的进程连不上图形会话；
-- `WantedBy=default.target` 而非 `graphical-session.target` —— UOS 20 的 systemd 241 未预装 xdg-desktop-portal，后者不可靠；
-- 调 `systemctl` 时显式设置 `XDG_RUNTIME_DIR`，否则从 GUI 调用可能找不到 user bus；
-- **`ExecStartPre=/bin/sleep 3` + `Restart=on-failure` + `RestartSec=5` + `StartLimitBurst=3`**：
-  登录瞬间 X / D-Bus / 托盘往往还没就绪，立刻启动可能因连不上显示而退出。
-  若不加 `Restart`，一次失败就变成"开机没自启"，很容易被误判为"弹窗问题没解决"。
-  `Restart=on-failure` 只对**非零退出**重启 —— 用户从托盘"退出 FSearch"是正常退出(0)，不会被立刻拉起；
-- 两条机制即便同时生效也不会起两份进程（FSearch 是 GApplication 单实例应用，重复启动只会 D-Bus 激活已有实例后退出）。
-
-**验证**（不要只看"托盘图标有没有"——即使自启失败，菜单里也能手动启动，不足以证明自启生效）：
+命令行等价操作：
 
 ```bash
-# A. 确认走的是 systemd 而不是 XDG
-fsearch            # 首选项 → 界面 → 勾选「开机自动启动」
-systemctl --user is-enabled fsearch.service     # 期望：enabled
-ls ~/.config/autostart/                          # 期望：没有 fsearch 相关 .desktop
-cat ~/.config/systemd/user/fsearch.service
-
-# B. 【权威】注销重登录后，确认服务真的在跑且已稳定
-systemctl --user status fsearch.service
-#   期望：Active: active (running)，且 Main PID 存在
-#   若显示 inactive(failed) 或启动后又退出 → 看下面的日志定位：
-journalctl --user -u fsearch.service -b --no-pager | tail -30
-#   - "Cannot open display" / "cannot connect to display" → DISPLAY 不对，
-#     改 unit 里 Environment=DISPLAY，或检查是否多显示器/改过显示号
-#   - 反复重启后进入 failed → 已触发 StartLimitBurst=3，看首个错误
-
-# C. 现象层验证
-#    - 不再出现「是否允许 fsearch 开机启动」弹窗
-#    - 托盘出现 fsearch 图标、窗口不弹出、后台索引正常进行
-#    （再等 30~60 秒复查一次 status，确认没有掉进 restart 循环）
-
-# D. 关闭自启
-fsearch            # 首选项 → 界面 → 取消勾选
-systemctl --user is-enabled fsearch.service     # 期望：disabled（报 not found 亦可）
-ls ~/.config/systemd/user/fsearch.service        # 期望：文件已删除
-# 退出 fsearch 后等 1 分钟，确认它没有被 Restart 拉起来
+sudo apt install ./fsearch-0.3.2-1_amd64.deb
 ```
 
----
+### 方式 B：便携 tar.gz（免安装）
 
-### 问题 2：文件夹快捷方式的右键菜单
-
-**原因**：0.3.1 的 OEM 菜单项是 `MimeType=inode/directory;` + `X-DFM-MenuTypes=SingleDir`，
-只对**真实文件夹**生效。而文件夹快捷方式是一个 `.desktop` 文件，
-dde-file-manager 识别为 `application/x-desktop`，走的是 `SingleFile` 分支，因此没有该菜单项。
-
-此外还有一个**更深的根因**：0.3.1 的 `Exec=… --search-in=%f` 在 UOS 20 上**根本拿不到目录**，
-连普通文件夹的右键菜单也是失效的（详见下方"关键根因"小节）。
-
-**修复**（`fsearch_context_menu.c` + `fsearch_desktop_shortcut.c` + `fsearch.c`）：
-
-1. 新增第三个 OEM 项 `fsearch-search-link.desktop`：
-
-   ```ini
-   MimeType=application/x-desktop;
-   X-DFM-SupportSuffix=desktop;      # 纯字符串后缀比较，不依赖 MIME 库
-   X-DFM-SupportSchemes=file;
-   X-DFM-NotShowIn=Desktop;
-   Exec=/opt/fsearch/bin/fsearch --search-in %u
-   X-DFM-MenuTypes=SingleFile
-   ```
-
-2. 新模块 `fsearch_desktop_shortcut.c` 解析该 `.desktop`：
-   - 优先读 `URL=`（`Type=Link` 的目录快捷方式，形如 `file:///path/to/dir`）；
-   - 其次读 `Exec=`，在引号内片段与空白分隔参数中找第一个能解析成已存在目录的；
-   - 兼容含未转义中文/空格的 `file://` URI（先 `g_uri_unescape_string`，失败再直接剥前缀）。
-
-3. **污染防护（关键）**：`SingleFile` + `application/x-desktop` 会让该菜单项出现在
-   **所有** `.desktop` 文件的右键菜单上（包括应用启动器、卸载器等）。
-   为此 fsearch 在 `--search-in` 显式传入却解析不出目录时**直接静默退出**（`return 0`），
-   绝不退化成"整个数据库"全盘搜索窗口。
-
-### ⚠️ 关键根因：Exec 里字段码必须用空格连接（这是 0.3.1/0.3.2 初稿都踩的坑）
-
-统信 UOS 20 的 dde-file-manager 5.x 通过 **libqtxdg** 解析 OEM 菜单的 `Exec` 行。
-其 `expandExecString()` 的行为（已核对源码）：
-
-1. `parseCombinedArgString()` **只在「引号外 + 空白字符」处切分** —— `=` **不是**分隔符；
-2. 字段码用**精确相等比较**（`token == "%u"`），**不是**子串替换；
-3. `%f` 与 `%u` 都能展开 `urls.at(0)`，区别是 `%f` 原样输出（5.x 传的是 `file://` URL），
-   而 `%u` 会先 `QUrl::toLocalFile()` **还原成本地路径**。
-   （UOS 20 具体打包的 libqtxdg 版本未确证：老版本上 `%f` 可能是"只丢弃不展开"，
-   新版本才是"展开为原串"。无论哪种，用 `%u` 都是安全的那一个。）
-4. **根本没有 `%p` 分支** —— 用 `%p` 会被原样传出。
-
-因此三种写法的后果：
-
-| 写法 | 结果 |
-|---|---|
-| `--search-in=%f`（0.3.1 与本版初稿的写法） | 分词后是**一个** token，不等于 `%f` → 兜底分支原样输出 → fsearch 收到字面量 `--search-in=%f` → **右键菜单完全失效** |
-| `--search-in %f` | 能工作，但拿到 `file://` URI 而非本地路径 |
-| `--search-in %u` ✅ | 能工作，且直接得到本地路径（少一层转换、少一层风险） |
-
-所以三个 OEM 项（`SingleDir` / `EmptyArea` / `SingleFile`）统一使用 `--search-in %u`。
-
-**这是 GNOME 与 Qt 的行为差异**：GLib 支持 `--opt=%f` 子串替换，Qt 系只支持独立 token。
-XDG 规范原文也写明字段码 "may only be used as an argument on their own"。
-**跨桌面环境写 .desktop Exec 时，字段码绝不能用 `=` 相连。**
-
-**自查方法**：右键任意文件夹点「用 FSearch 搜索」，然后看
-`cat ~/.cache/fsearch/last-search-in.log`。该文件记录了本次右键的完整命令行与解析结果：
-
-- `argv=... --search-in /home/xxx/桌面 ...` → 字段码已正确展开，菜单工作正常；
-- `argv=... --search-in=%f ...`（注意 `=` 连接）→ 字段码**没有**被展开，菜单会失效；
-- `argv=... --search-in %f ...`（空格连接但值仍是 `%f`）→ 拿到的是 URI，
-  程序仍能解析（`normalize_search_root` 兼容），但说明 dde 版本行为与预期略有差异。
-
-**已知取舍与限制**：
-
-- **UOS 20（dde-file-manager 5.x）不支持 `%p` 字段码** —— libqtxdg 的 `expandExecString()`
-  里根本没有 `%p` 分支。原"空白处右键"菜单（`Exec=… --search-in=%p`）在 UOS 20 上必然点不开。
-  已统一改为 `--search-in %u`：5.x 的 `emptyAreaActoins()` 在 EmptyArea 场景下
-  把当前目录存进 action data，经 `QVariant::toStringList()` 转换后进入 urls 列表，
-  `%u` 取 `urls.at(0)` 正好就是当前目录 —— 该菜单项功能正常。
-- **在文件管理器里直接浏览 `~/桌面`（或 `~/Desktop`）目录并右键，OEM 菜单必然不出现** ——
-  这是 dde-file-manager 的设计（进入目录后 OEM 扩展不再叠加，避免污染）。
-  验证"文件夹快捷方式"菜单请**回到桌面图标上右键**。
-- 桌面图标右键由 dde-desktop 负责，本模块已用 `X-DFM-NotShowIn=Desktop;` 排除重复。
-- 三个 OEM 文件同时写到系统级 `/usr/share/deepin/dde-file-manager/oem-menuextensions/`
-  与用户级 `~/.local/share/deepin/...`，以兼容 5.x（只读系统级）与 6.x（读用户级）两种行为。
-- **菜单生效方式**：dfm 5.x 用 QFileWatcher 监听 `subfileCreated` / `subfileDeleted`，
-  500ms 防抖后自动重载 —— **首次安装无需重启文件管理器**。
-  但它**不监听文件内容变化**，所以日后若要改已有 OEM 文件的内容，必须先删除再重新写入。
-
-**验证**：
+下载 `fsearch-0.3.2-uos20-portable.tar.gz` 与 `install_offline.sh`，
+两个文件放在同一目录，然后：
 
 ```bash
-# 首次安装约 0.5 秒后自动生效，通常无需重启 dfm。
-# 若菜单没出现，先确认 OEM 文件确实存在，再强制重载：
-ls -l /usr/share/deepin/dde-file-manager/oem-menuextensions/fsearch-search*.desktop
-killall dde-file-manager
-
-# 1) 真目录：右键应出现「用 FSearch 搜索…」，点击后新开窗口且"搜索范围"= 该目录
-# 2) 桌面上的"文件夹快捷方式"：右键应出现同一菜单项，点击后搜索范围 = 快捷方式指向的源目录
-# 3) 反向验证（防污染）：右键任意一个应用启动器 .desktop（如终端图标），
-#    菜单项可能出现，但点击后应"什么都不发生"（不弹窗口）；
-#    日志 ~/.cache/fsearch/last-search-in.log 中 resolved_search_in=(null)
-# 4) 调试日志：每次右键都会写 ~/.cache/fsearch/last-search-in.log，
-#    记录 dde-file-manager 实际传入的原始值与解析结果，便于排查
+sudo bash install_offline.sh
 ```
 
----
-
-### 问题 3：任务栏显示齿轮图标
-
-**原因**：0.3.1 的窗口从未调用过 `gtk_window_set_icon*()`。
-GTK 只能回退到主题默认图标（齿轮）。托盘图标正常是因为托盘代码里显式设置了图标名。
-
-**修复**（与 0.3.1 相同，并顺带受益于 0.3.2 的改进）：
-
-- `fsearch.c` 的 `startup()`：把 `<prefix>/share/icons` 加入图标主题搜索路径
-  （用 `readlink("/proc/self/exe")` 从 `<prefix>/libexec/fsearch-bin` 反推），
-  并调用 `gtk_window_set_default_icon_name("io.github.cboxdoerfer.FSearch")` 作全局兜底；
-- `fsearch_window.c` 的 `_init()`：`gtk_window_set_icon_name()` 为每个窗口显式设置；
-- **0.3.2 新增的 `on_icon_theme_changed`** 会在图标主题变化时清空 `pixbuf_cache` 与
-  `icon_cache` 并重绘结果列表 —— 这正好覆盖了"换主题后图标不刷新"的老毛病，
-  与本次修复方向一致，无需额外处理。
-
-**验证**：
+### 卸载
 
 ```bash
-fsearch
-# 期望：任务栏与窗口标题栏都显示 fsearch 自己的图标，不是齿轮
-# 换深色主题后再次确认图标仍正常（验证 0.3.2 的主题刷新逻辑未与本修复冲突）
+sudo apt remove fsearch           # deb 方式
+# 或
+sudo bash uninstall_offline.sh    # tar.gz 方式
 ```
 
----
+卸载会一并清理桌面入口、软链与右键菜单配置，不留残留。
 
-### 问题 4：结果列表拖拽复制/剪切
+### 对系统的影响
 
-**原因**：0.3.1 完全没有拖拽支持。
-
-**修复**（新增 `fsearch_drag_drop.c` + 改动 `fsearch_list_view.c`）：
-
-- 在 `FsearchListView` 上挂标准 `GtkDragSource`，提供 `text/uri-list` 与
-  `x-special/gnome-copied-files` 两种 target；
-- **手势让位**：从"已选中的行"按下时，框选手势主动 `GTK_EVENT_SEQUENCE_DENIED`，
-  把序列让给拖拽源；从未选中行/空白处按下仍为框选；
-- **选区保持**：点击一个已选中的行不再塌缩成单选 —— 否则"先 Ctrl 多选、再按住其中一项拖走"
-  会在按下瞬间丢失其余选中项；
-- 语义：直接拖拽 = 移动（剪切），按住 Ctrl 拖拽 = 复制；
-  拖拽时显示"N 个项目"浮动图标（复制为蓝底、移动为琥珀底）。
-
-**为什么用 GtkDragSource 而不是手写 `gtk_drag_begin()`**：
-`gtk_drag_begin()` 是 GTK3 低阶 API，`gtk_drag_set_icon_pixbuf()` 依赖 widget 上
-已存在 `GtkDragSource` 才会生效，否则**静默不设置图标**；`GtkDragSource` 自带手势识别与
-修饰键处理，与 FSearchListView 内部的手势体系配合更稳。
-
-**验证**：
-
-```bash
-fsearch
-# 1) 搜索出结果 → Ctrl/Shift 多选 3~5 个文件
-# 2) 把鼠标移到其中一个已选中的行上，按住左键拖到桌面/文件管理器窗口
-#    期望：出现"N 个项目"浮动图标；松开后文件被移动到目标位置
-# 3) 重复一次，改成按住 Ctrl + 左键拖拽 → 期望：文件被复制
-# 4) 从"未选中"的行按住左键拖动 → 期望：仍是框选，不触发拖拽（确认手势让位正确）
-# 5) 目标位置为 dde-file-manager 的某个目录 → 同样生效
-```
-
----
-
-## 四、GLib 兼容垫片（UOS 20 编译的关键）
-
-0.3.2 的 `meson.build` 要求 `gio-unix-2.0 >= 2.62`，而 UOS 20 只有 **GLib 2.58.3**。
-经逐个 API 核对，0.3.2 真正用到的 2.62 新 API 只有两个：
-
-| API | 引入版本 | 使用处 | 垫片 |
-|---|---|---|---|
-| `g_ptr_array_copy()` | 2.62 | `fsearch_database_exclude_manager.c`、`fsearch_database_include_manager.c` | `fsearch_compat.h` 提供等价实现（先 `g_ptr_array_sized_new` 再逐元素 `GCopyFunc` 拷贝） |
-| `g_clear_signal_handler()` | 2.62 | `fsearch_result_view.c` | `fsearch_compat.h` 提供宏：非零则 `g_signal_handler_disconnect` 再置 0 |
-
-其余 0.3.2 新用到的 API 在 2.58 上均已存在：
-`g_file_query_default_handler{,_async,_finish}` 是 **2.28**，
-`g_file_info_has_attribute` 是 **2.30**，`g_steal_pointer` 是 **2.44**。
-
-**做法**：把 `meson.build` 的下限调回 `>= 2.58`，用 `GLIB_VERSION_MAX_ALLOWED` 做条件编译。
-好处是在 GLib ≥ 2.62 的机器上自动使用系统原生实现，行为与上游完全一致；
-且**不需要"构建前用脚本改写源码"这种脆弱做法**（0.3.1 的 build 脚本是这么做的，重复运行容易出问题）。
-
-`build_fsearch_uos20.sh` 会校验 `src/fsearch_compat.h` 是否存在，防止误用上游原版目录编译。
-
----
-
-## 五、获取安装包（离线机直接用）
-
-到本仓库的 **Releases** 页面下载 `v0.3.2.1`，里面有两个包：
-
-| 文件 | 大小 | 用途 |
-|---|---|---|
-| `fsearch-0.3.2-uos20-portable.tar.gz` | 约 23 MB | 免安装便携版，解压即用，**推荐** |
-| `fsearch-0.3.2-1_amd64.deb` | 约 15 MB | 双击安装，自动建开始菜单/桌面入口与右键菜单 |
-
-离线机安装三选一（详见第六节「步骤 4」）：
-
-- **A（推荐）**：把 `.deb` 拷到 UOS 20 桌面 → **双击** → 输密码 → 完成
-- **B**：`.deb` 放同目录 → `sudo apt install ./fsearch-0.3.2-1_amd64.deb`
-- **C**：tar.gz + `install_offline.sh` + `uninstall_offline.sh` 三个文件放同目录 →
-  `sudo bash install_offline.sh`
-
-> ⚠️ 从 Windows 拷过去的 `.sh` 默认没有执行权限，双击会进文本编辑器。
-> 解决办法二选一：终端执行一次 `chmod +x *.sh`；或在文件属性里勾选「允许作为程序执行」。
->
-> ⚠️ UOS 专业版 1060 起默认启用「仅允许签名应用」管控，未签名 deb 双击可能被拦。
-> 解除方式见 `uos20-build/README.md` 第三节，或直接用 tar.gz 方式绕开。
-
----
-
-## 六、构建与运行（自己从源码编译时看）
-
-### 前提
-
-- 构建机：**UOS 20 / Debian 10 虚拟机**（必须与目标机同版本，保证二进制 ABI 兼容），可联网
-- 目标机：同版本 UOS 20，**不能联网**
-
-### 步骤
-
-**1) 把源码文件夹拷到构建机**
-
-整个 `fsearch-0.3.2-enhanced/` 目录拷到虚拟机桌面即可，保持 `src/`、`uos20-build/` 与
-`一键编译.sh` 平级。详细摆放方式见 **`uos20-build/README.md`（打包与安装速查）**。
-
-> 编译产物（tar.gz / deb / 日志）全部收在 `fsearch-0.3.2-enhanced/输出/`，
-> 不会散落在桌面。
-
-**2) 编译打包**
-
-**最省事**：给 `一键编译.sh` 加执行权限后**直接双击**，它会自动跑完编译 + 打 deb。
-
-命令行方式：
-
-```bash
-cd /home/你的用户名/fsearch-0.3.2-enhanced/uos20-build
-sudo bash build_fsearch_uos20.sh            # 不传参：自动在脚本目录找源码
-# 或显式指定：
-sudo bash /path/to/uos20-build/build_fsearch_uos20.sh
-```
-
-脚本会：`apt` 装编译依赖 → 校验 GLib 垫片 → `meson setup` + `ninja` 编译 →
-安装到 `/opt/fsearch` → 递归收集运行依赖（排除 glibc 核心库）到 `lib/` →
-生成启动器脚本 → 产出 `fsearch-0.3.2-uos20-portable.tar.gz`。
-
-编译依赖：`meson ninja-build pkg-config gettext itstool gcc libicu-dev libpcre2-dev
-libglib2.0-dev libgtk-3-dev libx11-dev appstream libxml2-utils yelp-tools`
-（`libx11-dev` 是全局快捷键的 XGrabKey 所需；`appstream` 提供 metainfo.its）
-
-**3) 可选：封装成 .deb，让离线机双击安装**
-
-```bash
-bash build_deb.sh
-# 产物：./fsearch-0.3.2-1_amd64.deb
-```
-
-`.deb` 里内嵌了 `postinst`（建软链 / 桌面入口 / 右键菜单）与 `postrm`（卸载清理），
-安装后与 tar.gz 方式的程序行为完全一致。
-
-> ⚠️ UOS 专业版 1060 起默认启用「仅允许签名应用」管控，未签名 deb 双击可能被拦。
-> 拦截解除方式见 `uos20-build/README.md` 第三节，或改用 tar.gz 方式完全绕开。
-
-**4) 离线机安装（三选一）**
-
-| 方式 | 操作 |
-|---|---|
-| A（推荐） | 双击 `.deb`，按提示输密码 |
-| B | `sudo apt install ./fsearch-0.3.2-1_amd64.deb` |
-| C | 三个文件放同目录后 `sudo bash install_offline.sh`（用 tar.gz） |
-
-**5）卸载**
-
-```bash
-sudo apt remove fsearch        # deb 方式（purge 可连用户配置一起删）
-sudo bash uninstall_offline.sh # tar.gz 方式
-```
-
-### 对系统的影响范围（不会破坏系统）
-
-- 只往 `/opt/fsearch` 释放文件 —— 系统目录中**不替换、不覆盖任何自带文件**
+- 程序文件只放在 `/opt/fsearch`，**不替换、不覆盖任何系统自带文件**
 - 只新建 `/usr/local/bin/fsearch` 一个软链
-- 只在 `~/.config/autostart/`、`~/.config/systemd/user/`、`~/.local/share/applications/`、
-  `~/桌面/` 下写用户级文件
-- 只在 `/usr/share/deepin/dde-file-manager/oem-menuextensions/` **新增** 3 个 fsearch-*.desktop
-  （并把该目录属主改为当前用户，以便在首选项中开关；卸载时自动删除）
-- **不执行 `apt install`、不升级系统库、不动 systemd 系统级单元**
-- glibc 核心库（libc / libm / libpthread / libdl / librt / libgcc_s / libstdc++ / ld-linux 等）
-  刻意**不打包**，一律用目标机自带的，避免 glibc 版本不匹配导致无法启动
+- 右键菜单配置在 `/usr/share/deepin/dde-file-manager/oem-menuextensions/` 下新增 3 个文件，卸载时自动删除
+- **不执行 `apt install`、不升级系统库、不改动 systemd 系统级单元**
+- glibc 核心库刻意不打包，一律用目标机自带的，避免版本不匹配导致无法启动
 
 ---
 
-## 七、偏好设置（首选项 → 界面）
+## 三、自己编译（可选）
 
-| 开关 | 说明 |
-|---|---|
-| 关闭时最小化到系统托盘 | 点 × 隐藏到托盘，后台继续实时索引 |
-| 开机自动启动（后台运行） | 走 systemd --user，登录后仅驻留托盘 |
-| 集成到右键菜单 | 3 个 OEM 菜单项的开关 |
-| 全局唤起快捷键 | 输入框内按组合键（如 Win+F、Ctrl+Alt+F）自动捕获；X11 有效，Wayland 自动降级 |
+需要一台 **UOS 20 / Debian 10 虚拟机**（与目标机同版本，保证二进制 ABI 兼容）：
 
-搜索结果右键菜单新增：**批量重命名…**（查找替换 / 前后缀 / 序号 / 大小写 / 扩展名 / 删字符，
-支持"仅第 N 个""最后一个""第 X 至第 Y 个"范围替换，带实时预览、冲突检测与撤销）。
+```bash
+# 把整个源码文件夹拷到虚拟机桌面，保持 src/、uos20-build/ 与 一键编译.sh 平级
+chmod +x 一键编译.sh
+./一键编译.sh
+```
+
+双击 `一键编译.sh` 亦可。脚本会自动装编译依赖、编译、打包，
+产物与日志统一收在源码文件夹内的 `输出/` 子目录，不会散落在桌面。
 
 ---
 
-## 八、遗留说明
+## 四、已知限制
 
-1. **拖拽的"剪切"依赖目标方支持**。dde-file-manager 主要读 `text/uri-list`，
-   我们通过 `GDK_ACTION_MOVE` 表达移动意图；若目标方忽略 action 而只按 uri-list 处理，
-   结果会是复制。GNOME 系（Nautilus）额外识别 `x-special/gnome-copied-files`。
-2. **全局快捷键仅 X11 有效**。UOS 20 默认 X11；若将来切到 Wayland，该功能自动 no-op。
-3. **本次改动全部经过静态核查**（括号配平、static 定义/使用顺序、头文件声明与实现一致、
-   meson 源文件存在性、UI id 与 template child 绑定一致、动作名注册与菜单引用一致、
-   三个 shell 脚本 `bash -n` 通过），但**本机为 Windows、无 GTK3 开发环境，未做真实编译**。
-   请在 UOS 20 虚拟机上完成编译与四项验证。
+1. **拖拽"剪切"取决于目标方是否识别**：dde-file-manager 主要读 `text/uri-list`，
+   本程序通过 `GDK_ACTION_MOVE` 表达移动意图；若目标方忽略 action 而只按 uri-list 处理，
+   结果会变成复制。GNOME 系（Nautilus）额外识别 `x-special/gnome-copied-files`，行为正常。
+2. **全局快捷键仅 X11 有效**：UOS 20 默认 X11；若将来切换到 Wayland，该功能自动失效。
+3. **deb 未做数字签名**：UOS 专业版 1060 起默认启用「仅允许签名应用」管控，
+   双击安装可能被拦截。解除方式见 `uos20-build/README.md` 第三节，或直接改用方式 B。
+
+---
+
+## 五、许可与致谢
+
+- 上游项目：[cboxdoerfer/fsearch](https://github.com/cboxdoerfer/fsearch)，GPL-2.0
+- 本增强版同样以 **GPL-2.0** 发布，原 README 见 [`README.upstream.md`](README.upstream.md)
+- 目标环境：统信 UOS 20 专业版（Debian 10、GLib 2.58.3、GTK 3.24、X11）
