@@ -43,7 +43,7 @@
 
 ### 方式 A：deb 双击安装（推荐）
 
-1. 下载 `fsearch-0.3.2-1_amd64.deb`
+1. 下载 `fsearch-0.3.2-2_amd64.deb`
 2. 拷到 UOS 20 桌面，**双击**，按提示输入密码
 
 安装后自动创建开始菜单与桌面入口，并可在首选项中开关右键菜单集成。
@@ -51,7 +51,7 @@
 命令行等价操作：
 
 ```bash
-sudo apt install ./fsearch-0.3.2-1_amd64.deb
+sudo apt install ./fsearch-0.3.2-2_amd64.deb
 ```
 
 ### 方式 B：便携 tar.gz（免安装）

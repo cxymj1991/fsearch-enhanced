@@ -28,7 +28,7 @@ set -euo pipefail
 
 PREFIX=/opt/fsearch
 PKG_NAME=fsearch
-PKG_VERSION=0.3.2-1
+PKG_VERSION=0.3.2-2
 ARCH="$(dpkg --print-architecture 2>/dev/null || echo amd64)"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

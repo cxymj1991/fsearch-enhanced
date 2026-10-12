@@ -22,7 +22,7 @@
     │   └── README.md
     └── 输出/                         ← 脚本自动创建，产物都在这里
         ├── fsearch-0.3.2-uos20-portable.tar.gz
-        ├── fsearch-0.3.2-1_amd64.deb
+        ├── fsearch-0.3.2-2_amd64.deb
         └── 编译日志.log
 ```
 
@@ -75,8 +75,8 @@ bash build_deb.sh                  # 再出 deb（不需要 sudo）
 
 | 方式 | 需要拷哪些文件 | 操作 |
 |---|---|---|
-| **A（推荐）** | `fsearch-0.3.2-1_amd64.deb` | **双击**，按提示输密码 |
-| B | 那个 deb | `sudo apt install ./fsearch-0.3.2-1_amd64.deb` |
+| **A（推荐）** | `fsearch-0.3.2-2_amd64.deb` | **双击**，按提示输密码 |
+| B | 那个 deb | `sudo apt install ./fsearch-0.3.2-2_amd64.deb` |
 | C | `.tar.gz` + `install_offline.sh` | 两个文件放同一目录后 `sudo bash install_offline.sh` |
 
 > 方式 C 完全不碰 deb 机制，若单位不便开安全策略开关就选它。
