@@ -19,6 +19,20 @@
 #define MIN_COLUMN_WIDTH 30
 #define COLUMN_RESIZE_AREA_WIDTH 6
 
+// 从"按下已选中行"到真正发起文件拖拽所需的位移（像素，曼哈顿距离）。
+//
+// 【为什么需要它】GTK 的 GtkGestureDrag 一旦越过它自己的移动阈值就会发 drag-begin，
+// 而早期实现在 drag-begin 里【立刻】调 gtk_drag_begin_with_coordinates()。
+// 该函数会取指针独占（seat grab），而**取独占会取消该 widget 上所有正在进行的
+// 手势序列** —— 包括负责双击计数的 GtkGestureMultiPress。于是双击的第二次按键
+// 再也送不到 multi_press 手势，n_press 永远到不了 2，row-activated 不发，
+// 表现为「双击打不开文件/文件夹」（2026-10-12 修复）。
+//
+// 修法：把真正的拖拽发起推迟到 drag-update，并要求指针持续移出本阈值。
+// 双击的自然抖动（通常 < 5px）与"按一下很快就松开"的动作都到不了这个距离，
+// 因此不会再误触；而刻意的拖拽动作很容易超过，功能不受影响。
+#define FILE_DRAG_THRESHOLD 20
+
 typedef enum {
     RUBBERBAND_SELECT_INACTIVE,
     RUBBERBAND_SELECT_WAITING,
@@ -66,6 +80,14 @@ struct _FsearchListView {
     gboolean rubberband_modify;
 
     gboolean single_click_activate;
+
+    // 文件拖拽的"挂起"态：按下已选中行时只记录起点、暂不发起拖拽，
+    // 等 drag-update 里指针持续移出 FILE_DRAG_THRESHOLD 才真正发起。
+    // 提前发起会因指针独占而取消 multi_press 手势，导致双击失效。
+    // 详见文件头部 FILE_DRAG_THRESHOLD 处的说明。
+    gboolean file_drag_pending;
+    gint file_drag_start_x_view;
+    gint file_drag_start_y_view;
 
     // The cursor index should only be highlighted while the view is navigated with the keyboard
     gboolean highlight_cursor_idx;
@@ -892,6 +914,12 @@ on_fsearch_list_view_bin_drag_gesture_end(GtkGestureDrag *gesture,
         view->rubberband_modify = FALSE;
         gtk_widget_queue_draw(GTK_WIDGET(view));
     }
+
+    // 挂起的拖拽无论是否真的发起了，都要在这里清掉：
+    // 用户按下已选中行、挪了一点又松开（没到阈值）时，drag-end 是唯一的收尾点，
+    // 不清就会让下一次按下误以为还在拖拽中。
+    // 注意：真正发起拖拽时（file_drag_pending 已置 FALSE）这里只是空操作。
+    view->file_drag_pending = FALSE;
 }
 
 static int
@@ -1102,6 +1130,26 @@ on_fsearch_list_view_bin_drag_gesture_update(GtkGestureDrag *gesture,
     //     return;
     // }
 
+    // 待发起的文件拖拽：指针持续移出阈值后才真正发起。
+    // 在此之前绝不调用 gtk_drag_begin_with_coordinates() —— 它会独占指针，
+    // 取消 multi_press 手势的序列，使双击的第二次按键丢失（详见
+    // 文件头部 FILE_DRAG_THRESHOLD 的说明）。
+    if (view->file_drag_pending) {
+        const double moved = ABS(offset_x) + ABS(offset_y);
+        if (moved < FILE_DRAG_THRESHOLD) {
+            // 还没到距离（典型：双击时的自然抖动），继续等，什么都不做。
+            // 此刻 multi_press 手势完好，双击可以正常生效。
+            return;
+        }
+        view->file_drag_pending = FALSE;
+        const gint press_row = fsearch_list_view_get_row_idx_for_y_view(view, view->file_drag_start_y_view);
+        fsearch_drag_drop_log_branch(press_row, view->file_drag_start_x_view, view->file_drag_start_y_view);
+        fsearch_drag_drop_begin_from_view(GTK_WIDGET(view),
+                                          view->file_drag_start_x_view,
+                                          view->file_drag_start_y_view);
+        return;
+    }
+
     if (view->rubberband_drag_mode == FALSE) {
         return;
     }
@@ -1122,13 +1170,24 @@ on_fsearch_list_view_bin_drag_gesture_begin(GtkGestureDrag *gesture,
         // 从已选项上拖 = 移动文件，从未选项/空白处拖 = 框选。
         const gint press_row = fsearch_list_view_get_row_idx_for_y_view(view, start_y_view);
         if (is_row_idx_valid(view, press_row) && fsearch_list_view_is_selected(view, press_row)) {
-            gtk_gesture_set_state(GTK_GESTURE(gesture), GTK_EVENT_SEQUENCE_DENIED);
-            // 主动发起文件拖拽：不依赖 gtk_drag_source_set 的内置按压检测
-            //（实测该检测在手势体系下会被拦截，导致拖拽完全无反应）。
-            // 此时已越过手势的移动阈值，正是发起拖拽的正确时机；
-            // 普通点击不会走到这里（不越过阈值就不会触发 drag-begin）。
+            // 只挂起，不立刻发起拖拽。
+            //
+            // 早期实现在这里直接调 fsearch_drag_drop_begin_from_view() →
+            // gtk_drag_begin_with_coordinates() → 取指针独占 → 取消 multi_press
+            // 手势序列 → 双击的第二次按键丢失 → 「双击打不开文件」。
+            // 现在改为：记下起点、CLAIM 本手势（让它继续收到 drag-update），
+            // 真正的拖拽推迟到 drag-update 里指针持续移出阈值后才发起。
+            //
+            // CLAIM 而非 DENY：DENY 会立即停止本手势的跟踪，就再也等不到
+            // drag-update，拖拽永远发不起来。CLAIM 只作用于本手势，
+            // 不影响 multi_press_gesture（两者没有 gtk_gesture_group() 分组）。
+            //
+            // 不设 rubberband_drag_mode：避免 update 里误画框选。
+            gtk_gesture_set_state(GTK_GESTURE(gesture), GTK_EVENT_SEQUENCE_CLAIMED);
+            view->file_drag_pending = TRUE;
+            view->file_drag_start_x_view = (gint)start_x_view;
+            view->file_drag_start_y_view = (gint)start_y_view;
             fsearch_drag_drop_log_branch(press_row, start_x_view, start_y_view);
-            fsearch_drag_drop_begin_from_view(GTK_WIDGET(view), start_x_view, start_y_view);
             return;
         }
 
@@ -1976,6 +2035,10 @@ fsearch_list_view_init(FsearchListView *view) {
     view->cursor_idx = UNSET_ROW;
     view->hovered_idx = UNSET_ROW;
     view->highlight_cursor_idx = FALSE;
+
+    view->file_drag_pending = FALSE;
+    view->file_drag_start_x_view = -1;
+    view->file_drag_start_y_view = -1;
 
     view->extend_started_idx = UNSET_ROW;
 
