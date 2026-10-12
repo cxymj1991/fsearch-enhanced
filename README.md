@@ -32,6 +32,7 @@
 - 文件夹快捷方式的右键菜单正常出现
 - 任务栏图标正常显示
 - 拖拽复制/剪切生效
+- **双击可以正常打开文件/文件夹**（0.3.2.1 曾因拖拽功能抢占指针而导致双击失效，0.3.2.2 修复）
 
 > 详细的实现说明、踩坑记录与验证方法，见 [`docs/增强实现说明.md`](docs/增强实现说明.md)。
 
@@ -56,9 +57,10 @@ sudo apt install ./fsearch-0.3.2-2_amd64.deb
 
 ### 方式 B：便携 tar.gz（免安装）
 
-下载 `fsearch-0.3.2-uos20-portable.tar.gz`，以及本仓库
+下载 `fsearch-0.3.2-uos20-portable.tar.gz`，以及
 [`uos20-build/install_offline.sh`](uos20-build/install_offline.sh) 与
-[`uos20-build/uninstall_offline.sh`](uos20-build/uninstall_offline.sh)，
+[`uos20-build/uninstall_offline.sh`](uos20-build/uninstall_offline.sh)
+（这两个脚本在 Release 附件里也有，直接下载更省事），
 把**三个文件放在同一目录**，然后：
 
 ```bash
